@@ -1,1 +1,101 @@
 
+<!DOCTYPE html>
+return;
+}
+
+alert('Booking confirmed');
+
+selectedSlot = null;
+
+document.getElementById('userName').value='';
+document.getElementById('department').value='';
+document.getElementById('purpose').value='';
+
+await loadBookings();
+}
+
+function renderBookings(){
+const tbody = document.getElementById('bookingTable');
+
+const isAdmin = document.getElementById('adminPanel').classList.contains('admin-active');
+
+tbody.innerHTML = bookings.map(b=>`
+<tr>
+<td>${b.equip_name}</td>
+<td>${b.user_name}</td>
+<td>${b.department}</td>
+<td>${b.booking_date}</td>
+<td>${b.slot}</td>
+<td>${b.duration}h</td>
+<td>${b.purpose || '-'}</td>
+<td>${new Date(b.booked_at).toLocaleString()}</td>
+${isAdmin?`<td><button onclick="deleteBooking('${b.id}')">Delete</button></td>`:''}
+</tr>
+`).join('');
+}
+
+async function deleteBooking(id){
+const ok = confirm('Delete booking?');
+if(!ok) return;
+
+await client
+.from('bookings')
+.delete()
+.eq('id',id);
+
+await loadBookings();
+}
+
+function loginAdmin(){
+const pass = document.getElementById('adminPassword').value;
+
+if(pass===ADMIN_PASSWORD){
+document.getElementById('adminPanel').classList.add('admin-active');
+document.getElementById('adminCol').style.display='table-cell';
+renderBookings();
+alert('Admin login successful');
+}else{
+alert('Wrong password');
+}
+}
+
+async function addEquipment(){
+const name = document.getElementById('newEquipName').value.trim();
+const desc = document.getElementById('newEquipDesc').value.trim();
+const icon = document.getElementById('newEquipIcon').value;
+
+if(!name){
+alert('Enter equipment name');
+return;
+}
+
+const obj = {
+id:name.toLowerCase().replace(/\s+/g,'-') + Date.now(),
+name:name,
+description:desc,
+icon:icon
+};
+
+await client
+.from('equipment')
+.insert(obj);
+
+alert('Equipment added');
+
+await loadEquipment();
+}
+
+document.getElementById('bookDate').value = new Date().toISOString().split('T')[0];
+document.getElementById('bookDate').min = new Date().toISOString().split('T')[0];
+
+document.getElementById('duration').addEventListener('change',renderSlots);
+document.getElementById('bookDate').addEventListener('change',renderSlots);
+
+loadEquipment();
+loadBookings();
+
+setInterval(loadBookings,5000);
+</script>
+
+</body>
+</html>
