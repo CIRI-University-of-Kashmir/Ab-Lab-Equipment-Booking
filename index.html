@@ -145,8 +145,39 @@
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const ADMIN_PASS = 'admin123'; 
 
-  // 24 HOUR SLOTS
-  const SLOTS = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+ // Update the SLOTS to a 12-hour AM/PM format
+const SLOTS = ['08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM'];
+
+function renderSlots() {
+    if (!selEquip) return;
+    const date = document.getElementById('book-date').value;
+    const dur = parseInt(document.getElementById('duration').value);
+    const g = document.getElementById('slots-grid');
+    
+    g.innerHTML = SLOTS.map(slot => {
+      const booked = isSlotBooked(selEquip, date, slot, dur);
+      const isSel = selSlot === slot;
+      
+      // Keep the slot display as is, but it will now use the AM/PM strings from the array
+      return `<div class="slot ${booked ? 'booked' : ''} ${isSel ? 'selected-slot' : ''}" 
+                   onclick="${booked ? '' : `selectSlot('${slot}')`}">${slot}</div>`;
+    }).join('');
+    updateBtn();
+}
+  
+  function formatDate(d) {
+    if (!d) return "";
+    // This splits the database date (2026-05-07) 
+    const dateParts = d.split('-');
+    if (dateParts.length !== 3) return d;
+    
+    const year = dateParts[0].substring(2); // Gets '26' from '2026'
+    const month = dateParts[1];
+    const day = dateParts[2];
+    
+    // Returns the format DD/MM/YY
+    return `${day}/${month}/${year}`;
+}
 
   let equipList = [];
   let bookings = [];
@@ -159,10 +190,18 @@
     const { data: bkData } = await _supabase.from('bookings').select('*');
     equipList = eqData || [];
     bookings = bkData || [];
-    document.getElementById('current-date').textContent = new Date().toDateString();
-    document.getElementById('book-date').value = new Date().toISOString().split('T')[0];
+    
+    // Updated Topbar Date Format
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yy = String(today.getFullYear()).substring(2);
+    document.getElementById('current-date').textContent = `${dd}/${mm}/${yy}`;
+    
+    document.getElementById('book-date').value = todayStr();
+    document.getElementById('book-date').min = todayStr();
     renderEquipGrid(); renderRecords(); renderManage();
-  }
+}
 
   async function sync() {
     const { data: eqData } = await _supabase.from('equipment').select('*');
