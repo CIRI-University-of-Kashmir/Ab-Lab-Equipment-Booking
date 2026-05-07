@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <title>Lab Equipment Booking System</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
   <style>
@@ -428,9 +429,12 @@
 </div>
 
 <script>
-  const EQUIP_KEY = 'labbook_equip';
-  const BOOK_KEY = 'labbook_bookings';
-  const ADMIN_PASS = 'admin123'; // Change this as needed
+  // --- SUPABASE CONFIGURATION ---
+  const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const ADMIN_PASS = 'admin123'; 
 
   const EQUIP_PALETTE = [
     { bg: '#E1F5EE', text: '#0F6E56' },
@@ -443,34 +447,36 @@
 
   const SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
 
-  const DEFAULT_EQUIP = [
-    { id: 'centrifuge', name: 'Centrifuge', desc: 'High-speed microcentrifuge', icon: 'ti-refresh' },
-    { id: 'gel-doc',    name: 'Gel Doc System', desc: 'UV gel documentation unit', icon: 'ti-camera' },
-    { id: 'pcr',        name: 'PCR Machine', desc: 'Thermal cycler, 96-well', icon: 'ti-temperature' },
-    { id: 'microscope', name: 'Microscope', desc: 'Fluorescence microscope', icon: 'ti-microscope' },
-  ];
-
   let equipList = [];
   let bookings = [];
   let selEquip = null;
   let selSlot = null;
   let isAdmin = false;
 
-  function load() {
-    try { equipList = JSON.parse(localStorage.getItem(EQUIP_KEY)) || DEFAULT_EQUIP; } catch { equipList = DEFAULT_EQUIP; }
-    try { bookings = JSON.parse(localStorage.getItem(BOOK_KEY)) || []; } catch { bookings = []; }
+  async function load() {
+    // Fetch Global Data from Supabase
+    const { data: eqData } = await _supabase.from('equipment').select('*');
+    const { data: bkData } = await _supabase.from('bookings').select('*');
+    
+    equipList = eqData || [];
+    bookings = bkData || [];
+
     const today = new Date();
     document.getElementById('current-date').textContent = today.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     document.getElementById('book-date').value = todayStr();
     document.getElementById('book-date').min = todayStr();
+    
     renderEquipGrid();
     renderRecords();
     renderManage();
   }
 
-  function save() {
-    localStorage.setItem(EQUIP_KEY, JSON.stringify(equipList));
-    localStorage.setItem(BOOK_KEY, JSON.stringify(bookings));
+  // --- REPLACED LOCAL SAVE WITH SUPABASE ACTIONS ---
+  async function sync() {
+    const { data: eqData } = await _supabase.from('equipment').select('*');
+    const { data: bkData } = await _supabase.from('bookings').select('*');
+    equipList = eqData || [];
+    bookings = bkData || [];
   }
 
   function toggleAuth() {
@@ -503,7 +509,7 @@
   function isSlotBooked(eqId, date, slot, dur) {
     const si = SLOTS.indexOf(slot);
     return bookings.some(b => {
-      if (b.equipId !== eqId || b.date !== date) return false;
+      if (b.equip_id !== eqId || b.book_date !== date) return false;
       const bi = SLOTS.indexOf(b.slot);
       return si < bi + parseInt(b.duration) && si + parseInt(dur) > bi;
     });
@@ -512,11 +518,11 @@
   function renderEquipGrid() {
     const g = document.getElementById('equip-grid');
     g.innerHTML = equipList.map((e, i) => {
-      const todayHasBooking = bookings.some(b => b.equipId === e.id && b.date === todayStr());
+      const todayHasBooking = bookings.some(b => b.equip_id === e.id && b.book_date === todayStr());
       return `<div class="equip-card ${selEquip === e.id ? 'selected' : ''}" onclick="selectEquip('${e.id}')">
         <i class="ti ${e.icon}"></i>
         <div class="equip-name">${e.name}</div>
-        <div class="equip-desc">${e.desc}</div>
+        <div class="equip-desc">${e.description}</div>
         <span class="equip-status ${todayHasBooking ? 'status-busy' : 'status-avail'}">${todayHasBooking ? 'Has bookings today' : 'Available today'}</span>
       </div>`;
     }).join('');
@@ -563,7 +569,7 @@
 
   function updateBtn() { document.getElementById('confirm-btn').disabled = !selSlot; }
 
-  function confirmBooking() {
+  async function confirmBooking() {
     const name = document.getElementById('user-name').value.trim();
     const dept = document.getElementById('dept-name').value.trim();
     const purpose = document.getElementById('purpose').value.trim();
@@ -575,21 +581,31 @@
     if (!selSlot) { showAlert('Please select a time slot.', 'error'); return; }
 
     const eq = equipList.find(e => e.id === selEquip);
-    const b = {
+    const newBooking = {
       id: Date.now().toString(),
-      equipId: selEquip,
-      equipName: eq.name,
-      name, dept, purpose: purpose || '—', date, slot: selSlot, duration: dur,
-      bookedAt: new Date().toISOString()
+      equip_id: selEquip,
+      equip_name: eq.name,
+      name: name,
+      dept: dept,
+      purpose: purpose || '—',
+      book_date: date,
+      slot: selSlot,
+      duration: dur
     };
-    bookings.push(b);
-    save();
-    showAlert(`Confirmed! ${eq.name} booked for ${formatDate(date)}.`, 'success');
-    document.getElementById('user-name').value = '';
-    document.getElementById('dept-name').value = '';
-    document.getElementById('purpose').value = '';
-    selSlot = null;
-    renderSlots(); renderEquipGrid(); renderRecords();
+
+    const { error } = await _supabase.from('bookings').insert([newBooking]);
+
+    if (error) {
+      showAlert('Global sync failed: ' + error.message, 'error');
+    } else {
+      await sync();
+      showAlert(`Confirmed! ${eq.name} booked for ${formatDate(date)}.`, 'success');
+      document.getElementById('user-name').value = '';
+      document.getElementById('dept-name').value = '';
+      document.getElementById('purpose').value = '';
+      selSlot = null;
+      renderSlots(); renderEquipGrid(); renderRecords();
+    }
   }
 
   function showAlert(msg, type) {
@@ -613,25 +629,25 @@
     }
 
     const filtered = bookings.filter(b => {
-      const ms = !search || [b.name, b.equipName, b.purpose, b.dept].some(v => v.toLowerCase().includes(search));
-      const me = !filterEq || b.equipId === filterEq;
+      const ms = !search || [b.name, b.equip_name, b.purpose, b.dept].some(v => v.toLowerCase().includes(search));
+      const me = !filterEq || b.equip_id === filterEq;
       return ms && me;
-    }).sort((a, b) => new Date(b.bookedAt) - new Date(a.bookedAt));
+    }).sort((a, b) => new Date(b.booked_at) - new Date(a.booked_at));
 
     const tbody = document.getElementById('records-tbody');
     if (!filtered.length) {
       tbody.innerHTML = `<tr><td colspan="${isAdmin ? 8 : 7}"><div class="empty"><p>No bookings found</p></div></td></tr>`;
     } else {
       tbody.innerHTML = filtered.map(b => {
-        const ei = equipList.findIndex(e => e.id === b.equipId);
+        const ei = equipList.findIndex(e => e.id === b.equip_id);
         const p = palette(ei);
-        const ba = new Date(b.bookedAt);
+        const ba = new Date(b.booked_at);
         const baStr = ba.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ', ' + ba.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
         return `<tr>
-          <td><span class="badge" style="background:${p.bg};color:${p.text}">${b.equipName}</span></td>
+          <td><span class="badge" style="background:${p.bg};color:${p.text}">${b.equip_name}</span></td>
           <td>${b.name}</td>
           <td>${b.dept}</td>
-          <td>${formatDate(b.date)}</td>
+          <td>${formatDate(b.book_date)}</td>
           <td style="font-family:monospace">${b.slot}</td>
           <td>${b.duration}h</td>
           <td style="color:var(--text-secondary)">${b.purpose}</td>
@@ -643,22 +659,23 @@
     const today = todayStr();
     document.getElementById('stats-row').innerHTML = [
       { val: bookings.length, lbl: 'Total bookings' },
-      { val: bookings.filter(b => b.date === today).length, lbl: "Today's bookings" },
+      { val: bookings.filter(b => b.book_date === today).length, lbl: "Today's bookings" },
       { val: new Set(bookings.map(b => b.name)).size, lbl: 'Unique users' },
       { val: bookings.reduce((s, b) => s + parseInt(b.duration), 0) + 'h', lbl: 'Total hours' },
     ].map(s => `<div class="stat-card"><div class="stat-val">${s.val}</div><div class="stat-lbl">${s.lbl}</div></div>`).join('');
   }
 
-  function deleteBooking(id) {
+  async function deleteBooking(id) {
     if (!confirm('Delete this booking?')) return;
-    bookings = bookings.filter(b => b.id !== id);
-    save(); renderRecords(); renderEquipGrid();
+    await _supabase.from('bookings').delete().eq('id', id);
+    await sync();
+    renderRecords(); renderEquipGrid();
   }
 
   function exportCSV() {
     if (!bookings.length) { alert('No bookings to export.'); return; }
     const header = ['Equipment', 'Booked By', 'Dept', 'Date', 'Slot', 'Duration', 'Purpose'];
-    const rows = bookings.map(b => [b.equipName, b.name, b.dept, b.date, b.slot, b.duration, b.purpose]);
+    const rows = bookings.map(b => [b.equip_name, b.name, b.dept, b.book_date, b.slot, b.duration, b.purpose]);
     const csv = [header, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
@@ -674,31 +691,33 @@
         <i class="ti ${e.icon}" style="color:${p.text}"></i>
         <div style="flex:1">
           <div style="font-size:14px;font-weight:500">${e.name}</div>
-          <div style="font-size:12px;color:var(--text-secondary)">${e.desc}</div>
+          <div style="font-size:12px;color:var(--text-secondary)">${e.description}</div>
         </div>
         <button class="del-btn" onclick="removeEquip('${e.id}')"><i class="ti ti-trash"></i></button>
       </div>`;
     }).join('');
   }
 
-  function addEquipment() {
+  async function addEquipment() {
     const name = document.getElementById('new-name').value.trim();
     const desc = document.getElementById('new-desc').value.trim();
     const icon = document.getElementById('new-icon').value;
     if (!name) return;
     const id = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
-    equipList.push({ id, name, desc: desc || name, icon });
-    save();
+    
+    await _supabase.from('equipment').insert([{ id, name, description: desc || name, icon }]);
+    
+    await sync();
     document.getElementById('new-name').value = '';
     document.getElementById('new-desc').value = '';
     renderEquipGrid(); renderManage(); renderRecords();
   }
 
-  function removeEquip(id) {
+  async function removeEquip(id) {
     if (!confirm('Remove this equipment?')) return;
-    equipList = equipList.filter(e => e.id !== id);
-    bookings = bookings.filter(b => b.equipId !== id);
-    save(); renderEquipGrid(); renderManage(); renderRecords();
+    await _supabase.from('equipment').delete().eq('id', id);
+    await sync();
+    renderEquipGrid(); renderManage(); renderRecords();
   }
 
   function switchTab(tab) {
