@@ -287,13 +287,24 @@
     await load();
   }
 
-  async function remE(id) { await _supabase.from('equipment').delete().eq('id',id); await load(); }
-
   function switchTab(t) {
+    // 1. Hide all sections and show only the selected one
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.getElementById('tab-' + t).classList.add('active');
+
+    // 2. Remove 'active' highlight from all sidebar buttons
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    // 3. Add 'active' highlight to the button that was clicked
+    // We use the ID format: nav-book, nav-records, or nav-manage
+    const activeBtn = document.getElementById('nav-' + t);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+
+    // 4. Refresh the table if switching to records
     if (t === 'records') renderRecords();
-  }
+}
 
   load();
 </script>
