@@ -42,8 +42,8 @@
     .equip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-bottom: 2rem; }
     .equip-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; cursor: pointer; background: white; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
     .equip-card.selected { border: 2px solid var(--green-700); background: var(--green-50); transform: translateY(-3px); }
-    .equip-card i { font-size: 36px; color: var(--green-600); margin-bottom: 12px; display: block; }
-    .equip-status { font-size: 11px; font-weight: bold; margin-top: 8px; display: block; }
+    .equip-card i.main-icon { font-size: 36px; color: var(--green-600); margin-bottom: 12px; display: block; }
+    .equip-status { font-size: 11px; font-weight: bold; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; }
 
     .card { background: white; border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem; border: 1px solid var(--border); }
     input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: inherit; margin-top: 5px; }
@@ -125,7 +125,7 @@
     <button class="nav-item active" id="nav-book" onclick="switchTab('book')"><i class="ti ti-calendar-plus"></i> Book Instrument</button>
     <button class="nav-item" id="nav-records" onclick="switchTab('records')"><i class="ti ti-clipboard-list"></i> Booking Records</button>
     <div id="admin-menu" style="display:none">
-        <button class="nav-item" id="nav-manage" onclick="switchTab('manage')"><i class="ti ti-settings"></i> Manage Instruments</button>
+        <button class="nav-item" id="nav-manage" onclick="switchTab('manage')"><i class="ti ti-settings"></i> Manage Gear</button>
     </div>
     <button class="nav-item" id="auth-btn" onclick="openLogin()" style="margin-top: 2rem; color: var(--green-700)"><i class="ti ti-user-shield"></i> Admin Access</button>
   </aside>
@@ -149,9 +149,7 @@
     </div>
 
     <div id="tab-records" class="section">
-      <!-- Container for Export UI: Initially empty -->
       <div id="export-container"></div>
-
       <div class="card" style="padding:0; overflow-x:auto">
         <table class="records-table">
           <thead>
@@ -206,6 +204,13 @@
   fillIcons('new-icon');
   fillIcons('edit-icon');
 
+  function getStatusMarkup(status) {
+    if(status === 'Working') return `<i class="ti ti-circle-check"></i> Working`;
+    if(status === 'Under Maintenance') return `<i class="ti ti-alert-triangle"></i> Maintenance`;
+    if(status === 'Not Working') return `<i class="ti ti-circle-x"></i> Not Working`;
+    return status;
+  }
+
   function formatTopbar(iso) {
     const p = iso.split('-');
     const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -230,7 +235,7 @@
     localStorage.removeItem('adminLoginTime');
     document.getElementById('admin-menu').style.display = 'none';
     document.getElementById('auth-btn').innerHTML = '<i class="ti ti-user-shield"></i> Admin Access';
-    document.getElementById('export-container').innerHTML = ''; // Remove UI
+    document.getElementById('export-container').innerHTML = ''; 
     alert("Session expired.");
     location.reload(); 
   }
@@ -245,7 +250,6 @@
  async function load() {
     const { data: eq } = await _supabase.from('equipment').select('*');
     const { data: bk } = await _supabase.from('bookings').select('*');
-    
     if(!eq || eq.length === 0) {
         equipList = [{id:'1', name:'Thermal Cycler', icon:'ti-temperature', status:'Working'}, {id:'2', name:'Centrifuge', icon:'ti-refresh', status:'Working'}];
     } else { equipList = eq; }
@@ -283,11 +287,9 @@
         closeOverlay('login-overlay');
         document.getElementById('admin-menu').style.display = 'block';
         document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
-        
         const b = document.getElementById('welcome-banner'); 
         b.style.display = 'block';
         setTimeout(() => { b.style.display = 'none'; }, 2500);
-        
         resetInactivityTimer();
         renderRecords();
         renderManage();
@@ -302,11 +304,11 @@
       if(status === 'Under Maintenance') statusColor = 'var(--amber-600)';
       if(status === 'Not Working') statusColor = 'var(--red-600)';
       return `<div class="equip-card ${selEquip === e.id ? 'selected' : ''}" 
-                   onclick="${status === 'Not Working' ? `alert('Instrument is currently Not Working')` : `selectEquip('${e.id}')`}"
+                   onclick="${status === 'Not Working' ? `alert('Instrument is Not Working')` : `selectEquip('${e.id}')`}"
                    style="${status === 'Not Working' ? 'opacity: 0.5;' : ''}">
-        <i class="ti ${e.icon || 'ti-flask'}"></i>
+        <i class="main-icon ti ${e.icon || 'ti-flask'}"></i>
         <b>${e.name}</b>
-        <span class="equip-status" style="color:${statusColor}">${status}</span>
+        <span class="equip-status" style="color:${statusColor}">${getStatusMarkup(status)}</span>
       </div>`;
     }).join('');
   }
@@ -342,21 +344,19 @@
 
   function renderRecords() {
     const exportBox = document.getElementById('export-container');
-    
     if (isAdmin) {
-      // Inject Admin-only HTML directly into the DOM
       exportBox.innerHTML = `
         <div class="card" style="border: 2px solid var(--green-600); background: #f9fdfc; margin-bottom: 20px;">
-          <h3 style="color: var(--green-600); margin-bottom: 10px;"><i class="ti ti-file-export"></i> Admin: Export History to PDF</h3>
+          <h3 style="color: var(--green-600); margin-bottom: 10px;"><i class="ti ti-file-export"></i> Admin: Export History</h3>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
               <div><label style="font-size: 12px;">From Date</label><input type="date" id="export-from" /></div>
               <div><label style="font-size: 12px;">To Date</label><input type="date" id="export-to" /></div>
           </div>
-          <button class="btn-primary" onclick="exportToPDF()" style="background: #2c3e50; margin-top: 15px;"><i class="ti ti-download"></i> Generate PDF Report</button>
+          <button class="btn-primary" onclick="exportToPDF()" style="background: #2c3e50; margin-top: 15px;"><i class="ti ti-download"></i> Generate PDF</button>
         </div>`;
       document.querySelectorAll('.adm').forEach(c => c.style.display = '');
     } else {
-      exportBox.innerHTML = ''; // Wipe it clean for everyone else
+      exportBox.innerHTML = ''; 
       document.querySelectorAll('.adm').forEach(c => c.style.display = 'none');
     }
     
@@ -370,14 +370,20 @@
   }
 
   function renderManage() {
-    document.getElementById('manage-list').innerHTML = equipList.map(e => `
-      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-        <span><i class="ti ${e.icon}"></i> <b>${e.name}</b> (${e.status || 'Working'})</span>
-        <div>
-          <button onclick="openEdit('${e.id}', '${e.name}', '${e.icon}', '${e.details || ''}', '${e.status || 'Working'}')" style="margin-right:10px; background:none; border:none; color:var(--green-600); cursor:pointer;">Edit</button>
-          <button class="btn-danger" onclick="triggerDelete('${e.id}', 'equipment')">Remove</button>
-        </div>
-      </div>`).join('');
+    document.getElementById('manage-list').innerHTML = equipList.map(e => {
+        const status = e.status || 'Working';
+        let statusColor = 'var(--green-600)';
+        if(status === 'Under Maintenance') statusColor = 'var(--amber-600)';
+        if(status === 'Not Working') statusColor = 'var(--red-600)';
+        return `
+          <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+            <span><i class="ti ${e.icon}"></i> <b>${e.name}</b> <span style="color:${statusColor}; font-size:12px; font-weight:bold; margin-left:10px;">${getStatusMarkup(status)}</span></span>
+            <div>
+              <button onclick="openEdit('${e.id}', '${e.name}', '${e.icon}', '${e.details || ''}', '${e.status || 'Working'}')" style="margin-right:10px; background:none; border:none; color:var(--green-600); cursor:pointer;">Edit</button>
+              <button class="btn-danger" onclick="triggerDelete('${e.id}', 'equipment')">Remove</button>
+            </div>
+          </div>`;
+    }).join('');
   }
 
   function openEdit(id, name, icon, details, status) {
@@ -419,30 +425,26 @@
   }
 
   function exportToPDF() {
-    if (!isAdmin) return; // Logic block
+    if (!isAdmin) return;
     const from = document.getElementById('export-from').value;
     const to = document.getElementById('export-to').value;
     if (!from || !to) return alert("Select both dates");
-
     const filtered = bookings.filter(b => b.book_date >= from && b.book_date <= to)
                              .sort((a, b) => new Date(a.book_date) - new Date(b.book_date));
     if (filtered.length === 0) return alert("No records for this range");
-
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     doc.setFontSize(18); doc.setTextColor(15, 110, 86);
     doc.text("AB Lab Booking History Report", 14, 20);
     doc.setFontSize(10); doc.setTextColor(100);
     doc.text(`Period: ${formatRecord(from)} to ${formatRecord(to)}`, 14, 28);
-
     const rows = filtered.map(b => [b.equip_name, b.user_name, b.dept_name, formatRecord(b.book_date), b.slot, b.duration + 'h', b.purpose]);
     doc.autoTable({
       startY: 35,
       head: [['Instrument', 'User', 'Lab', 'Date', 'Time', 'Hrs', 'Purpose']],
       body: rows,
       headStyles: { fillColor: [29, 158, 117] },
-      theme: 'striped',
-      styles: { fontSize: 8 }
+      theme: 'striped', styles: { fontSize: 8 }
     });
     doc.save(`Lab_Report_${from}_to_${to}.pdf`);
   }
