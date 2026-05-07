@@ -213,30 +213,95 @@
     return `${p[2]}-${p[1]}-${p[0]}`;
   }
 
+  let logoutTimer;
+
+// Function to start/reset the 5-minute inactivity timer
+function resetInactivityTimer() {
+    if (!isAdmin) return; // Only run if logged in
+
+    clearTimeout(logoutTimer);
+    
+    // 300,000 milliseconds = 5 minutes
+    logoutTimer = setTimeout(() => {
+        autoLogout();
+    }, 300000); 
+}
+
+// Function to handle the actual logout
+function autoLogout() {
+    isAdmin = false;
+    localStorage.removeItem('labAdminLoggedIn');
+    localStorage.removeItem('adminLoginTime'); // Clear the timestamp
+    
+    // Hide admin UI immediately
+    document.getElementById('admin-menu').style.display = 'none';
+    document.getElementById('auth-btn').innerHTML = '<i class="ti ti-user-shield"></i> Admin Access';
+    
+    alert("Session expired due to 5 minutes of inactivity.");
+    location.reload(); 
+}
+
+// Listen for any activity to reset the timer
+window.onload = resetInactivityTimer;
+window.onmousemove = resetInactivityTimer;
+window.onmousedown = resetInactivityTimer; 
+window.ontouchstart = resetInactivityTimer;
+window.onclick = resetInactivityTimer;
+window.onkeypress = resetInactivityTimer;
+
   async function load() {
-    const { data: eq } = await _supabase.from('equipment').select('*');
-    const { data: bk } = await _supabase.from('bookings').select('*');
-    equipList = eq || [];
-    bookings = bk || [];
-    const n = new Date().toISOString().split('T')[0];
-    document.getElementById('current-date').innerText = formatTopbar(n);
-    document.getElementById('book-date').value = n;
-    renderEquipGrid(); renderRecords(); renderManage();
-  }
+    // ... existing Supabase data fetching ...
+
+    const savedLogin = localStorage.getItem('labAdminLoggedIn');
+    const loginTime = localStorage.getItem('adminLoginTime');
+    const currentTime = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+
+    if (savedLogin === 'true' && loginTime) {
+        // If more than 5 mins have passed since last activity/login
+        if (currentTime - loginTime > fiveMinutes) {
+            autoLogout();
+        } else {
+            isAdmin = true;
+            document.getElementById('admin-menu').style.display = 'block';
+            document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
+            resetInactivityTimer(); // Restart the timer for this fresh page load
+        }
+    }
+
+    // ... existing date formatting and rendering ...
+    load(); // Refresh grid and records
+}
 
   function openLogin() { if(isAdmin) { isAdmin=false; location.reload(); } else document.getElementById('login-overlay').style.display='flex'; }
   function closeOverlay(id) { document.getElementById(id).style.display='none'; }
   
   function processLogin() {
-    if(document.getElementById('admin-id').value==='Sameer1921' && document.getElementById('admin-pass').value==='S@m33r1921') {
-        isAdmin = true; closeOverlay('login-overlay');
-        document.getElementById('admin-menu').style.display='block';
-        document.getElementById('auth-btn').innerText = 'Logout';
-        const b = document.getElementById('welcome-banner'); b.style.display = 'block';
+    const id = document.getElementById('admin-id').value;
+    const ps = document.getElementById('admin-pass').value;
+    
+    if(id === 'admin' && ps === 'admin123') {
+        isAdmin = true;
+        
+        // Store login state and current timestamp
+        localStorage.setItem('labAdminLoggedIn', 'true');
+        localStorage.setItem('adminLoginTime', Date.now()); 
+        
+        closeOverlay('login-overlay');
+        document.getElementById('admin-menu').style.display = 'block';
+        document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
+        
+        const b = document.getElementById('welcome-banner'); 
+        b.style.display = 'block';
         setTimeout(() => { b.style.display = 'none'; }, 2500);
+        
+        resetInactivityTimer(); // Start timer
         renderRecords();
-    } else alert("Invalid Credentials");
-  }
+        renderManage();
+    } else {
+        alert("Invalid Credentials");
+    }
+}
 
   function renderEquipGrid() {
     const g = document.getElementById('equip-grid');
