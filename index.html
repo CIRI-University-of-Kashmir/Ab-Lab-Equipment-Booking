@@ -121,19 +121,29 @@
 
 <!-- Replace your existing <div class="topbar"> with this updated version -->
 
-<div class="topbar">
-  <!-- Left spacer to help center the middle content -->
-  <div style="flex: 0 0 150px;"></div> 
+<!-- Replace your existing <div class="topbar"> with this version -->
 
-  <a href="https://ceglciri.wixsite.com/website" target="_blank" class="topbar-branding" style="justify-content: center;">
-    <div class="topbar-icon-box" style="padding: 0; overflow: hidden; width: 45px; height: 45px; border-radius: 8px;">
-      <img src="icon.jpg" alt="Lab Icon" style="width: 100%; height: 100%; object-fit: cover;">
-    </div>
-    <div style="display: flex; flex-direction: column; align-items: center;">
-      <span class="topbar-label">Lab Website</span>
-      <h1>AB Lab Instrument Booking</h1>
-    </div>
-  </a>
+<div class="topbar">
+  <!-- Left Section: Icon and Label -->
+  <div style="flex: 1; display: flex; align-items: center;">
+    <a href="https://ceglciri.wixsite.com/website" target="_blank" class="topbar-branding" style="gap: 12px;">
+      <div class="topbar-icon-box" style="padding: 0; overflow: hidden; width: 42px; height: 42px; border-radius: 8px;">
+        <img src="icon.jpg" alt="Lab Icon" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+      <span class="topbar-label" style="margin: 0;">Lab Website</span>
+    </a>
+  </div>
+
+  <!-- Center Section: Main Title -->
+  <div style="flex: 2; text-align: center;">
+    <h1 style="margin: 0;">AB Lab Instrument Booking</h1>
+  </div>
+
+  <!-- Right Section: Date -->
+  <div class="topbar-date-box" style="flex: 1; text-align: right;">
+    <p id="current-date" style="margin: 0;"></p>
+  </div>
+</div>
 
   <!-- Right section (Date) -->
   <div class="topbar-date-box" style="flex: 0 0 150px;">
