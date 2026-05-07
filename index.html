@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Added PDF Libraries -->
+  <!-- PDF Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   
@@ -25,7 +25,6 @@
       min-height: 100vh; color: #1a1a18;
     }
 
-    /* Fixed Topbar Layout */
     .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; height: 70px; position: sticky; top: 0; z-index: 100; }
     .topbar-icon-box { flex: 0 0 50px; }
     .topbar-title-box { flex: 1; text-align: center; }
@@ -127,7 +126,7 @@
     <button class="nav-item active" id="nav-book" onclick="switchTab('book')"><i class="ti ti-calendar-plus"></i> Book Instrument</button>
     <button class="nav-item" id="nav-records" onclick="switchTab('records')"><i class="ti ti-clipboard-list"></i> Booking Records</button>
     <div id="admin-menu" style="display:none">
-        <button class="nav-item" id="nav-manage" onclick="switchTab('manage')"><i class="ti ti-settings"></i> Manage Gear</button>
+        <button class="nav-item" id="nav-manage" onclick="switchTab('manage')"><i class="ti ti-settings"></i> Manage Instruments</button>
     </div>
     <button class="nav-item" id="auth-btn" onclick="openLogin()" style="margin-top: 2rem; color: var(--green-700)"><i class="ti ti-user-shield"></i> Admin Access</button>
   </aside>
@@ -151,6 +150,16 @@
     </div>
 
     <div id="tab-records" class="section">
+      <!-- Admin Only Export Section inside Records Tab -->
+      <div class="card adm" id="admin-export-ui" style="display:none; border: 2px solid var(--green-600); background: #f9fdfc;">
+        <h3 style="color: var(--green-600); margin-bottom: 10px;"><i class="ti ti-file-export"></i> Admin: Export History to PDF</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
+            <div><label style="font-size: 12px;">From Date</label><input type="date" id="export-from" /></div>
+            <div><label style="font-size: 12px;">To Date</label><input type="date" id="export-to" /></div>
+        </div>
+        <button class="btn-primary" onclick="exportToPDF()" style="background: #2c3e50; margin-top: 15px;"><i class="ti ti-download"></i> Generate PDF Report</button>
+      </div>
+
       <div class="card" style="padding:0; overflow-x:auto">
         <table class="records-table">
           <thead>
@@ -162,16 +171,6 @@
     </div>
 
     <div id="tab-manage" class="section">
-      <!-- Admin Export Functionality Added Below -->
-      <div class="card" id="export-section">
-        <h3>Export Booking History</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px">
-            <div><label>From Date</label><input type="date" id="export-from" /></div>
-            <div><label>To Date</label><input type="date" id="export-to" /></div>
-        </div>
-        <button class="btn-primary" onclick="exportToPDF()" style="background: #2c3e50;"><i class="ti ti-file-download"></i> Download PDF Report</button>
-      </div>
-
       <div class="card">
         <h3>Add New Instrument</h3>
         <input type="text" id="new-name" placeholder="Instrument Name" />
@@ -195,9 +194,8 @@
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const SLOTS = ['12:00 AM','01:00 AM','02:00 AM','03:00 AM','04:00 AM','05:00 AM','06:00 AM','07:00 AM','08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM','07:00 PM','08:00 PM','09:00 PM','10:00 PM','11:00 PM'];
-  
-  const ICONS = ["\uead2", "\ueb39", "\ueb1f", "\ueb06", "\ueb2e", "\uea93", "\ueb34", "\ueaa5", "\ueabd", "\ueb40", "\ueb2d", "\uea89", "\uea94", "\uea99", "\ueb4a", "\ueb49", "\ueb01", "\ueb25", "\ueb35", "\ueb02", "\ueaee", "\ueaf7", "\ueb43", "\ueb32", "\uea9a", "\ueb31", "\ueaa8", "\ueaad", "\ueaa7", "\uea9d", "\ueb27", "\uea9e", "\ueafc", "\ueb0c", "\ueb4c", "\ueb36", "\ueb0d", "\uea9f", "\ueb46", "\ueaa0", "\ueaa1", "\ueaa2", "\ueaa3", "\ueb0b", "\uea8d", "\ueb4b", "\uea8b", "\uead0", "\ueae2", "\uea92", "\ueb2c", "\ueb38", "\ueaa6", "\uea95", "\ueaa4", "\uea98", "\ueb45", "\ueb09", "\ueaf4", "\ueb0f", "\ueb48", "\ueb00", "\ueb0e", "\ueb26", "\ueb47", "\ueb44", "\ueb3d", "\ueb22", "\ueaa9", "\uea9c", "\ueaac", "\ueab1", "\ueab0", "\ueaad", "\ueab3", "\ueab5", "\ueab4", "\uea8e", "\ueb42", "\uea86", "\uea9b", "\ueab2", "\ueab6", "\uea87", "\uea8a", "\ueab7", "\ueab8", "\uea84", "\uea85", "\uea83", "\uea82", "\uea81", "\uea80", "\uea7f", "\uea7e", "\ueb24", "\ueb21", "\ueb23", "\ueafb", "\ueaf8"];
   const ICON_NAMES = ["ti-flask","ti-temperature","ti-refresh","ti-microscope","ti-shield","ti-chart-dots","ti-snowflake","ti-droplet","ti-dna","ti-test-pipe","ti-ripple","ti-atom","ti-binary","ti-biohazard","ti-virus","ti-vaccine","ti-medical-cross","ti-pill","ti-stethoscope","ti-heart-rate-monitor","ti-eyeglass","ti-id","ti-tool","ti-settings","ti-database","ti-server","ti-cpu","ti-device-laptop","ti-device-desktop","ti-battery-charging","ti-plug","ti-bolt","ti-flame","ti-leaf","ti-wind","ti-sun","ti-moon","ti-cloud","ti-umbrella","ti-anchor","ti-plane","ti-car","ti-truck","ti-microchip","ti-antenna","ti-wifi","ti-broadcast","ti-lock","ti-key","ti-bell","ti-search","ti-star","ti-bookmark","ti-calendar","ti-clock","ti-camera","ti-video","ti-microphone","ti-headphones","ti-music","ti-volume","ti-mail","ti-message","ti-phone","ti-user","ti-users","ti-trash","ti-pencil","ti-edit","ti-copy","ti-clipboard","ti-folder","ti-file","ti-download","ti-upload","ti-link","ti-external-link","ti-check","ti-x","ti-alert-circle","ti-help","ti-info-circle","ti-circle-check","ti-circle-x","ti-square-check","ti-square-x","ti-arrow-up","ti-arrow-down","ti-arrow-left","ti-arrow-right","ti-chevron-up","ti-chevron-down","ti-chevron-left","ti-chevron-right","ti-player-play","ti-player-pause","ti-player-stop","ti-layout-grid","ti-layout-list"];
+  const ICONS = ["\uead2", "\ueb39", "\ueb1f", "\ueb06", "\ueb2e", "\uea93", "\ueb34", "\ueaa5", "\ueabd", "\ueb40", "\ueb2d", "\uea89", "\uea94", "\uea99", "\ueb4a", "\ueb49", "\ueb01", "\ueb25", "\ueb35", "\ueb02", "\ueaee", "\ueaf7", "\ueb43", "\ueb32", "\uea9a", "\ueb31", "\ueaa8", "\ueaad", "\ueaa7", "\uea9d", "\ueb27", "\uea9e", "\ueafc", "\ueb0c", "\ueb4c", "\ueb36", "\ueb0d", "\uea9f", "\ueb46", "\ueaa0", "\ueaa1", "\ueaa2", "\ueaa3", "\ueb0b", "\uea8d", "\ueb4b", "\uea8b", "\uead0", "\ueae2", "\uea92", "\ueb2c", "\ueb38", "\ueaa6", "\uea95", "\ueaa4", "\uea98", "\ueb45", "\ueb09", "\ueaf4", "\ueb0f", "\ueb48", "\ueb00", "\ueb0e", "\ueb26", "\ueb47", "\ueb44", "\ueb3d", "\ueb22", "\ueaa9", "\uea9c", "\ueaac", "\ueab1", "\ueab0", "\ueaad", "\ueab3", "\ueab5", "\ueab4", "\uea8e", "\ueb42", "\uea86", "\uea9b", "\ueab2", "\ueab6", "\uea87", "\uea8a", "\ueab7", "\ueab8", "\uea84", "\uea85", "\uea83", "\uea82", "\uea81", "\uea80", "\uea7f", "\uea7e", "\ueb24", "\ueb21", "\ueb23", "\ueafb", "\ueaf8"];
 
   let equipList = [], bookings = [], selEquip = null, selSlot = null, isAdmin = false;
 
@@ -228,75 +226,48 @@
   }
 
   let logoutTimer;
-
-// Function to start/reset the 5-minute inactivity timer
-function resetInactivityTimer() {
-    if (!isAdmin) return; // Only run if logged in
-
+  function resetInactivityTimer() {
+    if (!isAdmin) return;
     clearTimeout(logoutTimer);
-    
-    // 300,000 milliseconds = 5 minutes
-    logoutTimer = setTimeout(() => {
-        autoLogout();
-    }, 300000); 
-}
+    logoutTimer = setTimeout(() => autoLogout(), 300000); 
+  }
 
-// Function to handle the actual logout
-function autoLogout() {
+  function autoLogout() {
     isAdmin = false;
     localStorage.removeItem('labAdminLoggedIn');
-    localStorage.removeItem('adminLoginTime'); // Clear the timestamp
-    
-    // Hide admin UI immediately
+    localStorage.removeItem('adminLoginTime');
     document.getElementById('admin-menu').style.display = 'none';
     document.getElementById('auth-btn').innerHTML = '<i class="ti ti-user-shield"></i> Admin Access';
-    
     alert("Session expired due to 5 minutes of inactivity.");
     location.reload(); 
-}
+  }
 
-// Listen for any activity to reset the timer
-window.onload = resetInactivityTimer;
-window.onmousemove = resetInactivityTimer;
-window.onmousedown = resetInactivityTimer; 
-window.ontouchstart = resetInactivityTimer;
-window.onclick = resetInactivityTimer;
-window.onkeypress = resetInactivityTimer;
+  window.onload = resetInactivityTimer;
+  window.onmousemove = resetInactivityTimer;
+  window.onmousedown = resetInactivityTimer; 
+  window.ontouchstart = resetInactivityTimer;
+  window.onclick = resetInactivityTimer;
+  window.onkeypress = resetInactivityTimer;
 
  async function load() {
-    // 1. ALWAYS FETCH DATA FIRST
     const { data: eq } = await _supabase.from('equipment').select('*');
     const { data: bk } = await _supabase.from('bookings').select('*');
     
-    // Set default gear if database is empty (Safety Net)
     if(!eq || eq.length === 0) {
-        equipList = [
-            {id:'1', name:'Thermal Cycler', icon:'ti-temperature', status:'Working'},
-            {id:'2', name:'Centrifuge', icon:'ti-refresh', status:'Working'}
-        ];
-    } else { 
-        equipList = eq; 
-    }
+        equipList = [{id:'1', name:'Thermal Cycler', icon:'ti-temperature', status:'Working'}, {id:'2', name:'Centrifuge', icon:'ti-refresh', status:'Working'}];
+    } else { equipList = eq; }
     bookings = bk || [];
 
-    // 2. CHECK AUTH SESSION
     const savedLogin = localStorage.getItem('labAdminLoggedIn');
     const loginTime = localStorage.getItem('adminLoginTime');
     const currentTime = Date.now();
-    const fiveMinutes = 5 * 60 * 1000;
-
-    if (savedLogin === 'true' && loginTime) {
-        if (currentTime - loginTime > fiveMinutes) {
-            autoLogout(); // Session expired
-        } else {
-            isAdmin = true;
-            document.getElementById('admin-menu').style.display = 'block';
-            document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
-            resetInactivityTimer();
-        }
+    if (savedLogin === 'true' && loginTime && (currentTime - loginTime < 300000)) {
+        isAdmin = true;
+        document.getElementById('admin-menu').style.display = 'block';
+        document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
+        resetInactivityTimer();
     }
 
-    // 3. SET DATE & RENDER UI (This brings your gear back)
     const n = new Date().toISOString().split('T')[0];
     document.getElementById('current-date').innerText = formatTopbar(n);
     document.getElementById('book-date').value = n;
@@ -304,7 +275,7 @@ window.onkeypress = resetInactivityTimer;
     renderEquipGrid(); 
     renderRecords(); 
     renderManage();
-}
+  }
 
   function openLogin() { if(isAdmin) { isAdmin=false; location.reload(); } else document.getElementById('login-overlay').style.display='flex'; }
   function closeOverlay(id) { document.getElementById(id).style.display='none'; }
@@ -312,44 +283,32 @@ window.onkeypress = resetInactivityTimer;
   function processLogin() {
     const id = document.getElementById('admin-id').value;
     const ps = document.getElementById('admin-pass').value;
-    
     if(id === 'Sameer1921' && ps === 'S@m33r1921') {
         isAdmin = true;
-        
-        // Store login state and current timestamp
         localStorage.setItem('labAdminLoggedIn', 'true');
         localStorage.setItem('adminLoginTime', Date.now()); 
-        
         closeOverlay('login-overlay');
         document.getElementById('admin-menu').style.display = 'block';
         document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
-        
         const b = document.getElementById('welcome-banner'); 
         b.style.display = 'block';
         setTimeout(() => { b.style.display = 'none'; }, 2500);
-        
-        resetInactivityTimer(); // Start timer
+        resetInactivityTimer();
         renderRecords();
         renderManage();
-    } else {
-        alert("Invalid Credentials");
-    }
-}
+    } else { alert("Invalid Credentials"); }
+  }
 
   function renderEquipGrid() {
     const g = document.getElementById('equip-grid');
     g.innerHTML = equipList.map(e => {
       const status = e.status || 'Working';
-      const isSelectable = status === 'Working' || status === 'Under Maintenance';
-      const busy = bookings.some(b => b.equip_id === e.id && b.book_date === document.getElementById('book-date').value);
-      
       let statusColor = 'var(--green-600)';
       if(status === 'Under Maintenance') statusColor = 'var(--amber-600)';
       if(status === 'Not Working') statusColor = 'var(--red-600)';
-
       return `<div class="equip-card ${selEquip === e.id ? 'selected' : ''}" 
-                   onclick="${status === 'Not Working' ? `alert('Instrument is currently Not Working and cannot be booked.')` : `selectEquip('${e.id}')`}"
-                   style="${status === 'Not Working' ? 'opacity: 0.5; cursor: not-allowed;' : (status === 'Under Maintenance' ? 'background: #fffdf5;' : '')}">
+                   onclick="${status === 'Not Working' ? `alert('Instrument is currently Not Working')` : `selectEquip('${e.id}')`}"
+                   style="${status === 'Not Working' ? 'opacity: 0.5;' : ''}">
         <i class="ti ${e.icon || 'ti-flask'}"></i>
         <b>${e.name}</b>
         <span class="equip-status" style="color:${statusColor}">${status}</span>
@@ -364,7 +323,6 @@ window.onkeypress = resetInactivityTimer;
     const date = document.getElementById('book-date').value;
     const dur = parseInt(document.getElementById('duration').value);
     const g = document.getElementById('slots-grid');
-    
     g.innerHTML = SLOTS.map(s => {
       const si = SLOTS.indexOf(s);
       const isBooked = bookings.some(b => {
@@ -388,7 +346,9 @@ window.onkeypress = resetInactivityTimer;
   }
 
   function renderRecords() {
+    // Show/Hide Admin specific UI
     document.querySelectorAll('.adm').forEach(c => c.style.display = isAdmin ? '' : 'none');
+    
     document.getElementById('records-tbody').innerHTML = bookings.map(b => `
       <tr>
         <td><b>${b.equip_name}</b></td><td>${b.user_name}</td><td>${b.dept_name}</td>
@@ -420,30 +380,9 @@ window.onkeypress = resetInactivityTimer;
 
   async function saveEdit() {
     const id = document.getElementById('edit-id').value;
-    const name = document.getElementById('edit-name').value;
-    const icon = document.getElementById('edit-icon').value;
-    const details = document.getElementById('edit-details').value;
-    const status = document.getElementById('edit-status').value;
-
-    // This part sends the data to Supabase
-    const { error } = await _supabase
-        .from('equipment')
-        .update({ 
-            name: name, 
-            icon: icon, 
-            details: details, 
-            status: status 
-        })
-        .eq('id', id);
-
-    if (error) {
-        console.error("Update Error:", error.message);
-        alert("Failed to update: " + error.message);
-    } else {
-        closeOverlay('edit-overlay');
-        await load(); // This refreshes the grid so you see the changes
-    }
-}
+    await _supabase.from('equipment').update({ name: document.getElementById('edit-name').value, icon: document.getElementById('edit-icon').value, details: document.getElementById('edit-details').value, status: document.getElementById('edit-status').value }).eq('id', id);
+    closeOverlay('edit-overlay'); await load();
+  }
 
   function triggerDelete(id, table) {
     document.getElementById('confirm-overlay').style.display = 'flex';
@@ -455,11 +394,8 @@ window.onkeypress = resetInactivityTimer;
 
   async function addEquipment() {
     const n = document.getElementById('new-name').value;
-    const d = document.getElementById('new-details').value;
-    const s = document.getElementById('new-status').value;
-    const i = document.getElementById('new-icon').value;
     if(!n) return;
-    await _supabase.from('equipment').insert([{id:Date.now().toString(), name:n, details:d, status:s, icon:i}]);
+    await _supabase.from('equipment').insert([{id:Date.now().toString(), name:n, details:document.getElementById('new-details').value, status:document.getElementById('new-status').value, icon:document.getElementById('new-icon').value}]);
     await load();
   }
 
@@ -471,61 +407,33 @@ window.onkeypress = resetInactivityTimer;
     if (t === 'records') renderRecords();
   }
 
-  // --- NEW PDF EXPORT FUNCTION ---
+  // --- PDF EXPORT LOGIC ---
   function exportToPDF() {
-    const fromDate = document.getElementById('export-from').value;
-    const toDate = document.getElementById('export-to').value;
+    const from = document.getElementById('export-from').value;
+    const to = document.getElementById('export-to').value;
+    if (!from || !to) return alert("Select both dates");
 
-    if (!fromDate || !toDate) {
-      alert("Please select both From and To dates.");
-      return;
-    }
-
-    // Filter bookings based on date range
-    const filtered = bookings.filter(b => {
-      return b.book_date >= fromDate && b.book_date <= toDate;
-    }).sort((a, b) => new Date(a.book_date) - new Date(b.book_date));
-
-    if (filtered.length === 0) {
-      alert("No records found for the selected date range.");
-      return;
-    }
+    const filtered = bookings.filter(b => b.book_date >= from && b.book_date <= to)
+                             .sort((a, b) => new Date(a.book_date) - new Date(b.book_date));
+    if (filtered.length === 0) return alert("No records for this range");
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+    doc.setFontSize(18); doc.setTextColor(15, 110, 86);
+    doc.text("AB Lab Booking History Report", 14, 20);
+    doc.setFontSize(10); doc.setTextColor(100);
+    doc.text(`Period: ${formatRecord(from)} to ${formatRecord(to)}`, 14, 28);
 
-    // Add Title
-    doc.setFontSize(18);
-    doc.setTextColor(15, 110, 86); // var(--green-600)
-    doc.text("AB Lab Booking Report", 14, 20);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Range: ${formatRecord(fromDate)} to ${formatRecord(toDate)}`, 14, 28);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 33);
-
-    // Prepare table data
-    const tableRows = filtered.map(b => [
-      b.equip_name,
-      b.user_name,
-      b.dept_name,
-      formatRecord(b.book_date),
-      b.slot,
-      b.duration + 'h',
-      b.purpose
-    ]);
-
-    // Generate Table
+    const rows = filtered.map(b => [b.equip_name, b.user_name, b.dept_name, formatRecord(b.book_date), b.slot, b.duration + 'h', b.purpose]);
     doc.autoTable({
-      startY: 40,
-      head: [['Instrument', 'User', 'Lab/Dept', 'Date', 'Time', 'Hrs', 'Purpose']],
-      body: tableRows,
-      headStyles: { fillColor: [29, 158, 117] }, // var(--green-700)
+      startY: 35,
+      head: [['Instrument', 'User', 'Lab', 'Date', 'Time', 'Hrs', 'Purpose']],
+      body: rows,
+      headStyles: { fillColor: [29, 158, 117] },
       theme: 'striped',
       styles: { fontSize: 8 }
     });
-
-    doc.save(`Lab_Report_${fromDate}_to_${toDate}.pdf`);
+    doc.save(`Lab_Report_${from}_to_${to}.pdf`);
   }
 
   load();
