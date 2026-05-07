@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- PDF Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   
@@ -126,7 +125,7 @@
     <button class="nav-item active" id="nav-book" onclick="switchTab('book')"><i class="ti ti-calendar-plus"></i> Book Instrument</button>
     <button class="nav-item" id="nav-records" onclick="switchTab('records')"><i class="ti ti-clipboard-list"></i> Booking Records</button>
     <div id="admin-menu" style="display:none">
-        <button class="nav-item" id="nav-manage" onclick="switchTab('manage')"><i class="ti ti-settings"></i> Manage Instruments</button>
+        <button class="nav-item" id="nav-manage" onclick="switchTab('manage')"><i class="ti ti-settings"></i> Manage Gear</button>
     </div>
     <button class="nav-item" id="auth-btn" onclick="openLogin()" style="margin-top: 2rem; color: var(--green-700)"><i class="ti ti-user-shield"></i> Admin Access</button>
   </aside>
@@ -150,15 +149,8 @@
     </div>
 
     <div id="tab-records" class="section">
-      <!-- Admin Only Export Section inside Records Tab -->
-      <div class="card adm" id="admin-export-ui" style="display:none; border: 2px solid var(--green-600); background: #f9fdfc;">
-        <h3 style="color: var(--green-600); margin-bottom: 10px;"><i class="ti ti-file-export"></i> Admin: Export History to PDF</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-            <div><label style="font-size: 12px;">From Date</label><input type="date" id="export-from" /></div>
-            <div><label style="font-size: 12px;">To Date</label><input type="date" id="export-to" /></div>
-        </div>
-        <button class="btn-primary" onclick="exportToPDF()" style="background: #2c3e50; margin-top: 15px;"><i class="ti ti-download"></i> Generate PDF Report</button>
-      </div>
+      <!-- Container for Export UI: Initially empty -->
+      <div id="export-container"></div>
 
       <div class="card" style="padding:0; overflow-x:auto">
         <table class="records-table">
@@ -238,7 +230,8 @@
     localStorage.removeItem('adminLoginTime');
     document.getElementById('admin-menu').style.display = 'none';
     document.getElementById('auth-btn').innerHTML = '<i class="ti ti-user-shield"></i> Admin Access';
-    alert("Session expired due to 5 minutes of inactivity.");
+    document.getElementById('export-container').innerHTML = ''; // Remove UI
+    alert("Session expired.");
     location.reload(); 
   }
 
@@ -290,9 +283,11 @@
         closeOverlay('login-overlay');
         document.getElementById('admin-menu').style.display = 'block';
         document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
+        
         const b = document.getElementById('welcome-banner'); 
         b.style.display = 'block';
         setTimeout(() => { b.style.display = 'none'; }, 2500);
+        
         resetInactivityTimer();
         renderRecords();
         renderManage();
@@ -346,8 +341,24 @@
   }
 
   function renderRecords() {
-    // Show/Hide Admin specific UI
-    document.querySelectorAll('.adm').forEach(c => c.style.display = isAdmin ? '' : 'none');
+    const exportBox = document.getElementById('export-container');
+    
+    if (isAdmin) {
+      // Inject Admin-only HTML directly into the DOM
+      exportBox.innerHTML = `
+        <div class="card" style="border: 2px solid var(--green-600); background: #f9fdfc; margin-bottom: 20px;">
+          <h3 style="color: var(--green-600); margin-bottom: 10px;"><i class="ti ti-file-export"></i> Admin: Export History to PDF</h3>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
+              <div><label style="font-size: 12px;">From Date</label><input type="date" id="export-from" /></div>
+              <div><label style="font-size: 12px;">To Date</label><input type="date" id="export-to" /></div>
+          </div>
+          <button class="btn-primary" onclick="exportToPDF()" style="background: #2c3e50; margin-top: 15px;"><i class="ti ti-download"></i> Generate PDF Report</button>
+        </div>`;
+      document.querySelectorAll('.adm').forEach(c => c.style.display = '');
+    } else {
+      exportBox.innerHTML = ''; // Wipe it clean for everyone else
+      document.querySelectorAll('.adm').forEach(c => c.style.display = 'none');
+    }
     
     document.getElementById('records-tbody').innerHTML = bookings.map(b => `
       <tr>
@@ -407,8 +418,8 @@
     if (t === 'records') renderRecords();
   }
 
-  // --- PDF EXPORT LOGIC ---
   function exportToPDF() {
+    if (!isAdmin) return; // Logic block
     const from = document.getElementById('export-from').value;
     const to = document.getElementById('export-to').value;
     if (!from || !to) return alert("Select both dates");
