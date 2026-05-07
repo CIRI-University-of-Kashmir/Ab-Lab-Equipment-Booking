@@ -289,13 +289,56 @@
   }
 
   function renderManage() {
-    document.getElementById('manage-list').innerHTML = equipList.map(e => `
-      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between">
-        <span><b>${e.name}</b></span><button onclick="remE('${e.id}')" style="background:none; border:none; color:var(--red-600); cursor:pointer"><i class="ti ti-trash"></i> Remove</button>
+    const list = document.getElementById('manage-list');
+    list.innerHTML = equipList.map(e => `
+      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:white">
+        <span><i class="ti ${e.icon || 'ti-flask'}"></i> <b>${e.name}</b></span>
+        <div style="display:flex; gap:10px">
+            <button onclick="editInstrument('${e.id}', '${e.name}')" style="background:var(--green-50); color:var(--green-600); border:none; padding:5px 10px; border-radius:4px; cursor:pointer">
+                <i class="ti ti-edit"></i> Edit
+            </button>
+            <button onclick="deleteInstrument('${e.id}')" style="background:var(--red-50); color:var(--red-600); border:none; padding:5px 10px; border-radius:4px; cursor:pointer">
+                <i class="ti ti-trash"></i> Delete
+            </button>
+        </div>
       </div>
     `).join('');
-  }
+}
 
+// Function to Edit Instrument Name
+async function editInstrument(id, oldName) {
+    const newName = prompt("Enter new name for " + oldName + ":", oldName);
+    if (!newName || newName === oldName) return;
+
+    const { error } = await _supabase
+        .from('equipment')
+        .update({ name: newName })
+        .eq('id', id);
+
+    if (error) {
+        alert("Update failed: " + error.message);
+    } else {
+        await load(); // Refresh the grid and list
+    }
+}
+
+// Function to Delete Instrument
+async function deleteInstrument(id) {
+    // Show the custom delete modal we built earlier, or use a confirm for instruments
+    if (confirm("Are you sure? Deleting this instrument will also remove its associated booking history.")) {
+        const { error } = await _supabase
+            .from('equipment')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            alert("Delete failed: " + error.message);
+        } else {
+            await load(); // Refresh everything
+        }
+    }
+}
+  
   async function addEquipment() {
     const n = document.getElementById('new-name').value;
     if(!n) return;
