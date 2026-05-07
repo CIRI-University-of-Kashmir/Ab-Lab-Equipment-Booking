@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Equipment Booking System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <style>
+    /* ... (CSS from previous version remains the same) ... */
+    :root { --green-50: #E1F5EE; --green-600: #0F6E56; --green-700: #1D9E75; --red-50: #FCEBEB; --red-600: #A32D2D; --red-100: #F7C1C1; --gray-50: #F7F6F3; --gray-100: #EDEDEA; --gray-200: #D3D1C7; --gray-500: #888780; --text-primary: #1a1a18; --text-secondary: #5F5E5A; --text-tertiary: #888780; --border: rgba(0,0,0,0.12); --border-strong: rgba(0,0,0,0.22); --surface: #ffffff; --surface-secondary: #F7F6F3; --radius-md: 8px; --radius-lg: 12px; }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--surface-secondary); color: var(--text-primary); min-height: 100vh; }
+    .topbar { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 0 2rem; display: flex; align-items: center; gap: 12px; height: 60px; position: sticky; top: 0; z-index: 100; }
+    .topbar-icon { width: 34px; height: 34px; background: var(--green-50); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; }
+    .topbar-icon i { font-size: 18px; color: var(--green-600); }
+    .topbar h1 { font-size: 16px; font-weight: 600; }
+    .layout { display: flex; min-height: calc(100vh - 60px); }
+    .sidebar { width: 200px; background: var(--surface); border-right: 0.5px solid var(--border); padding: 1.5rem 1rem; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-md); font-size: 14px; cursor: pointer; color: var(--text-secondary); background: none; border: none; width: 100%; margin-bottom: 2px; }
+    .nav-item.active { background: var(--green-50); color: var(--green-600); font-weight: 500; }
+    .nav-label { font-size: 10px; text-transform: uppercase; color: var(--text-tertiary); margin: 1.2rem 0 6px; padding: 0 12px; }
+    .main { flex: 1; padding: 2rem; max-width: 950px; }
+    .section { display: none; } .section.active { display: block; }
+    .form-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+    .form-group input, .form-group select { padding: 9px 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-md); font-size: 13px; }
+    .btn-primary { padding: 10px 22px; background: var(--green-700); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; }
+    .table-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .records-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .records-table th { padding: 10px 14px; text-align: left; color: var(--text-secondary); border-bottom: 0.5px solid var(--border); font-size: 11px; text-transform: uppercase; }
+    .records-table td { padding: 11px 14px; border-bottom: 0.5px solid var(--border); }
+    .del-btn { background: none; border: none; color: var(--text-tertiary); cursor: pointer; padding: 4px 6px; }
+    .del-btn:hover { color: var(--red-600); }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-icon"><i class="ti ti-flask"></i></div>
+  <h1>Lab Equipment Booking</h1>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="nav-label">Booking</div>
+    <button class="nav-item active" onclick="switchTab('book')"><i class="ti ti-calendar-plus"></i> Book Equipment</button>
+    <div class="nav-label">Data</div>
+    <button class="nav-item" onclick="switchTab('records')"><i class="ti ti-clipboard-list"></i> Records</button>
+    <div id="admin-nav" style="display:none">
+        <div class="nav-label">Admin</div>
+        <button class="nav-item" onclick="switchTab('manage')"><i class="ti ti-settings"></i> Manage</button>
+    </div>
+    <div class="nav-label" style="margin-top:2rem">Security</div>
+    <button class="nav-item" id="auth-btn" onclick="toggleAuth()"><i class="ti ti-lock"></i> Admin Login</button>
+  </aside>
+
+  <main class="main">
+    <div id="tab-book" class="section active">
+      <div class="form-card">
+        <h3>Book Equipment</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Equipment</label><select id="sel-equip"></select></div>
+          <div class="form-group"><label>Your Name</label><input type="text" id="user-name" /></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Department / Lab</label><input type="text" id="user-dept" placeholder="e.g. Microbiology" /></div>
+            <div class="form-group"><label>Purpose</label><input type="text" id="purpose" /></div>
+        </div>
+        <button class="btn-primary" onclick="confirmBooking()">Confirm Booking</button>
+      </div>
+    </div>
+
+    <div id="tab-records" class="section">
+      <h3>Booking Records</h3>
+      <div class="table-wrap">
+        <table class="records-table">
+          <thead><tr><th>Equip</th><th>User</th><th>Dept</th><th>Purpose</th><th>Booked on</th><th id="th-action"></th></tr></thead>
+          <tbody id="records-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-manage" class="section">
+      <h3>Manage Equipment</h3>
+      <div class="form-card">
+        <div class="form-row">
+            <div class="form-group"><label>Name</label><input type="text" id="new-name" placeholder="e.g. Centrifuge" /></div>
+            <div class="form-group"><button class="btn-primary" style="margin-top:18px" onclick="addEquipment()">Add</button></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="records-table">
+          <tbody id="manage-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  let isAdmin = false;
+  const ADMIN_PASS = 'admin123'; // CHANGE THIS PASSWORD
+  let bookings = JSON.parse(localStorage.getItem('labbook_bookings')) || [];
+  let equipment = JSON.parse(localStorage.getItem('labbook_equip')) || [{ name: 'Centrifuge' }, { name: 'PCR Machine' }];
+
+  function save() { 
+    localStorage.setItem('labbook_bookings', JSON.stringify(bookings));
+    localStorage.setItem('labbook_equip', JSON.stringify(equipment));
+  }
+
+  function toggleAuth() {
+    if (isAdmin) {
+        isAdmin = false;
+        document.getElementById('auth-btn').innerHTML = '<i class="ti ti-lock"></i> Admin Login';
+        document.getElementById('admin-nav').style.display = 'none';
+        if (document.getElementById('tab-manage').classList.contains('active')) switchTab('book');
+    } else {
+        const pass = prompt("Enter Admin Password:");
+        if (pass === ADMIN_PASS) {
+            isAdmin = true;
+            document.getElementById('auth-btn').innerHTML = '<i class="ti ti-lock-open"></i> Logout';
+            document.getElementById('admin-nav').style.display = 'block';
+        } else {
+            alert('Incorrect password!');
+        }
+    }
+    renderRecords();
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'records') renderRecords();
+    if (tab === 'manage') renderManage();
+  }
+
+  function confirmBooking() {
+    const b = { id: Date.now().toString(), equip: document.getElementById('sel-equip').value, name: document.getElementById('user-name').value, dept: document.getElementById('user-dept').value, purpose: document.getElementById('purpose').value, bookedAt: new Date().toLocaleString() };
+    if(!b.name || !b.dept) { alert('Please fill in name and department.'); return; }
+    bookings.push(b); save();
+    alert('Booking confirmed!');
+    renderRecords();
+  }
+
+  function renderRecords() {
+    const tbody = document.getElementById('records-tbody');
+    document.getElementById('th-action').style.display = isAdmin ? '' : 'none';
+    tbody.innerHTML = bookings.map(b => `
+      <tr>
+        <td>${b.equip}</td><td>${b.name}</td><td>${b.dept}</td><td>${b.purpose}</td><td>${b.bookedAt}</td>
+        ${isAdmin ? `<td><button class="del-btn" onclick="deleteBooking('${b.id}')"><i class="ti ti-trash"></i></button></td>` : '<td></td>'}
+      </tr>
+    `).join('');
+  }
+
+  function renderManage() {
+    const tbody = document.getElementById('manage-tbody');
+    tbody.innerHTML = equipment.map((e, idx) => `
+      <tr><td>${e.name}</td><td><button class="del-btn" onclick="removeEquip(${idx})"><i class="ti ti-trash"></i></button></td></tr>
+    `).join('');
+  }
+
+  function addEquipment() {
+    const val = document.getElementById('new-name').value;
+    if(!val) return;
+    equipment.push({ name: val });
+    save(); renderManage(); updateEquipSelect();
+  }
+
+  function removeEquip(idx) {
+    equipment.splice(idx, 1);
+    save(); renderManage(); updateEquipSelect();
+  }
+
+  function deleteBooking(id) {
+    bookings = bookings.filter(b => b.id !== id);
+    save(); renderRecords();
+  }
+
+  function updateEquipSelect() {
+    const sel = document.getElementById('sel-equip');
+    sel.innerHTML = equipment.map(e => `<option value="${e.name}">${e.name}</option>`).join('');
+  }
+
+  updateEquipSelect();
+  renderRecords();
+</script>
+</body>
+</html>
