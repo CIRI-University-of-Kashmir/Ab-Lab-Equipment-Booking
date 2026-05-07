@@ -164,20 +164,6 @@ function renderSlots() {
     }).join('');
     updateBtn();
 }
-  
-  function formatDate(d) {
-    if (!d) return "";
-    // This splits the database date (2026-05-07) 
-    const dateParts = d.split('-');
-    if (dateParts.length !== 3) return d;
-    
-    const year = dateParts[0].substring(2); // Gets '26' from '2026'
-    const month = dateParts[1];
-    const day = dateParts[2];
-    
-    // Returns the format DD/MM/YY
-    return `${day}/${month}/${year}`;
-}
 
   let equipList = [];
   let bookings = [];
