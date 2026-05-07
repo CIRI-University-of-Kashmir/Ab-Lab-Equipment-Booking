@@ -219,18 +219,58 @@
 
   async function confirmBooking() {
     const gear = equipList.find(e => e.id === selEquip);
+    const date = document.getElementById('book-date').value;
+    const dur = document.getElementById('duration').value;
+
+    // 1. GLOBAL CHECK: Verify with Supabase if the slot is still available
+    const { data: existingBookings, error: checkError } = await _supabase
+        .from('bookings')
+        .select('slot, duration')
+        .eq('equip_id', selEquip)
+        .eq('book_date', date);
+
+    if (checkError) {
+        alert("Verification failed: " + checkError.message);
+        return;
+    }
+
+    // 2. OVERLAP LOGIC: Check if the selected time overlaps with any existing booking
+    const si = SLOTS.indexOf(selSlot);
+    const isOverlap = existingBookings.some(b => {
+        const bi = SLOTS.indexOf(b.slot);
+        return si < bi + parseInt(b.duration) && si + parseInt(dur) > bi;
+    });
+
+    if (isOverlap) {
+        alert("Sorry, this slot was just taken by someone else! Please choose another time.");
+        await sync(); // Refresh local data to show the slot as booked
+        renderSlots();
+        return;
+    }
+
+    // 3. PROCEED: If no overlap, save the booking
     const b = {
-      id: Date.now().toString(), equip_id: selEquip, equip_name: gear.name,
+      id: Date.now().toString(), 
+      equip_id: selEquip, 
+      equip_name: gear.name,
       user_name: document.getElementById('user-name').value, 
       dept_name: document.getElementById('dept-name').value, 
       purpose: document.getElementById('purpose').value, 
-      book_date: document.getElementById('book-date').value,
-      slot: selSlot, duration: document.getElementById('duration').value
+      book_date: date,
+      slot: selSlot, 
+      duration: dur
     };
-    const { error } = await _supabase.from('bookings').insert([b]);
-    if(error) alert(error.message);
-    else { await sync(); alert('Booked Globally!'); switchTab('records'); }
-  }
+
+    const { error: insertError } = await _supabase.from('bookings').insert([b]);
+    
+    if(insertError) {
+      alert("Booking Error: " + insertError.message);
+    } else {
+      await sync(); 
+      alert('Global Booking Confirmed!'); 
+      switchTab('records');
+    }
+}
 
   function renderRecords() {
     document.getElementById('th-admin').style.display = isAdmin ? '' : 'none';
