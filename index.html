@@ -326,10 +326,26 @@
     const icon = document.getElementById('edit-icon').value;
     const details = document.getElementById('edit-details').value;
     const status = document.getElementById('edit-status').value;
-    await _supabase.from('equipment').update({ name, icon, details, status }).eq('id', id);
-    closeOverlay('edit-overlay');
-    await load();
-  }
+
+    // This part sends the data to Supabase
+    const { error } = await _supabase
+        .from('equipment')
+        .update({ 
+            name: name, 
+            icon: icon, 
+            details: details, 
+            status: status 
+        })
+        .eq('id', id);
+
+    if (error) {
+        console.error("Update Error:", error.message);
+        alert("Failed to update: " + error.message);
+    } else {
+        closeOverlay('edit-overlay');
+        await load(); // This refreshes the grid so you see the changes
+    }
+}
 
   function triggerDelete(id, table) {
     document.getElementById('confirm-overlay').style.display = 'flex';
