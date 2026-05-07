@@ -135,11 +135,11 @@
       <div class="equip-grid" id="equip-grid"></div>
       <div class="card" id="booking-form" style="display:none">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-          <div><label>Full Name</label><input type="text" id="user-name" /></div>
-          <div><label>Lab/Dept</label><input type="text" id="dept-name" /></div>
+          <div><label>Full Name</label><input type="text" id="user-name" placeholder="Sameer Mushtaq" /></div>
+          <div><label>Lab/Dept</label><input type="text" id="dept-name" placeholder="CIRI / AB Lab"/></div>
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px">
-          <div><label>Purpose</label><input type="text" id="purpose" /></div>
+          <div><label>Purpose</label><input type="text" id="purpose" placeholder="HI-C Data Analysis"/></div>
           <div><label>Date</label><input type="date" id="book-date" onchange="renderSlots()" /></div>
         </div>
         <div style="margin-top:10px"><label>Duration</label><select id="duration" onchange="renderSlots()"></select></div>
