@@ -10,33 +10,22 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --green-50: #E1F5EE; --green-600: #0F6E56; --green-700: #1D9E75;
-      --red-50: #FCEBEB; --red-600: #A32D2D; --border: rgba(0,0,0,0.12);
-      --surface: #ffffff; --radius-md: 8px; --radius-lg: 12px;
+      --red-50: #FCEBEB; --red-600: #A32D2D; --amber-50: #FFFBEB; --amber-600: #D97706;
+      --border: rgba(0,0,0,0.12); --surface: #ffffff; --radius-md: 8px; --radius-lg: 12px;
     }
 
     body { 
       font-family: 'DM Sans', sans-serif; 
-      background: linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)), url('284285.jpg');
+      background: linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)), url('284385.jpg');
       background-size: cover; background-attachment: fixed; background-position: center;
       min-height: 100vh; color: #1a1a18;
     }
 
     /* Fixed Topbar Layout */
-    .topbar { 
-      background: var(--surface); 
-      border-bottom: 1px solid var(--border); 
-      padding: 0 2rem; 
-      display: flex; 
-      align-items: center; 
-      height: 70px; 
-      position: sticky; 
-      top: 0; 
-      z-index: 100; 
-    }
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; height: 70px; position: sticky; top: 0; z-index: 100; }
     .topbar-icon-box { flex: 0 0 50px; }
     .topbar-title-box { flex: 1; text-align: center; }
     .topbar-date-box { flex: 0 0 150px; text-align: right; }
-    
     .topbar h1 { font-size: 24px; font-weight: 700; color: var(--green-600); margin: 0; }
     #current-date { font-weight: bold; color: var(--green-600); margin: 0; }
 
@@ -52,12 +41,12 @@
     .equip-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; cursor: pointer; background: white; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
     .equip-card.selected { border: 2px solid var(--green-700); background: var(--green-50); transform: translateY(-3px); }
     .equip-card i { font-size: 36px; color: var(--green-600); margin-bottom: 12px; display: block; }
+    .equip-status { font-size: 11px; font-weight: bold; margin-top: 8px; display: block; }
 
     .card { background: white; border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem; border: 1px solid var(--border); }
     input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: inherit; margin-top: 5px; }
 
-    /* Custom dropdown to show icons */
-    #new-icon { font-family: 'tabler-icons', sans-serif !important; font-size: 18px; }
+    #new-icon, #edit-icon { font-family: 'tabler-icons', sans-serif !important; font-size: 18px; }
 
     .records-table { width: 100%; border-collapse: collapse; background: white; }
     .records-table th, .records-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
@@ -67,8 +56,12 @@
     .btn-danger { background: var(--red-600); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-box { background: white; padding: 2rem; border-radius: var(--radius-lg); width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-box { background: white; padding: 2rem; border-radius: var(--radius-lg); width: 100%; max-width: 400px; text-align: center; }
     #welcome-banner { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green-700); color: white; padding: 12px 40px; border-radius: 50px; font-weight: bold; z-index: 2000; display: none; }
+    
+    .slot { padding: 10px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 11px; cursor: pointer; background: white; }
+    .slot.selected-slot { border: 2px solid var(--green-700); background: var(--green-50); color: var(--green-600); font-weight: bold; }
+    .slot.booked { background: #eee !important; color: #aaa !important; cursor: not-allowed; text-decoration: line-through; }
   </style>
 </head>
 <body>
@@ -77,7 +70,7 @@
 
 <div id="login-overlay" class="overlay">
   <div class="modal-box">
-    <h2 style="margin-bottom: 20px">Admin Access</h2>
+    <h2>Admin Access</h2>
     <input type="text" id="admin-id" placeholder="Admin ID" />
     <input type="password" id="admin-pass" placeholder="Password" style="margin-top: 10px" />
     <button class="btn-primary" onclick="processLogin()">Sign In</button>
@@ -90,6 +83,12 @@
     <h2 style="margin-bottom: 20px">Edit Instrument</h2>
     <input type="hidden" id="edit-id" />
     <input type="text" id="edit-name" placeholder="Name" style="margin-bottom: 10px;" />
+    <input type="text" id="edit-details" placeholder="Details" style="margin-bottom: 10px;" />
+    <select id="edit-status" style="margin-bottom: 10px;">
+        <option value="Working">Working</option>
+        <option value="Under Maintenance">Under Maintenance</option>
+        <option value="Not Working">Not Working</option>
+    </select>
     <select id="edit-icon" style="font-family: 'tabler-icons', sans-serif;"></select>
     <button class="btn-primary" onclick="saveEdit()">Update Gear</button>
     <button onclick="closeOverlay('edit-overlay')" style="margin-top: 10px; background: none; border: none; color: #888; cursor: pointer">Cancel</button>
@@ -121,8 +120,8 @@
 
 <div class="layout">
   <aside class="sidebar">
-    <button class="nav-item active" id="nav-book" onclick="switchTab('book')"><i class="ti ti-calendar-plus"></i> Book Equipment</button>
-    <button class="nav-item" id="nav-records" onclick="switchTab('records')"><i class="ti ti-clipboard-list"></i> Global Records</button>
+    <button class="nav-item active" id="nav-book" onclick="switchTab('book')"><i class="ti ti-calendar-plus"></i> Book Instrument</button>
+    <button class="nav-item" id="nav-records" onclick="switchTab('records')"><i class="ti ti-clipboard-list"></i> Booking Records</button>
     <div id="admin-menu" style="display:none">
         <button class="nav-item" id="nav-manage" onclick="switchTab('manage')"><i class="ti ti-settings"></i> Manage Gear</button>
     </div>
@@ -160,9 +159,14 @@
 
     <div id="tab-manage" class="section">
       <div class="card">
-        <h3>Add Instrument</h3>
-        <input type="text" id="new-name" placeholder="Name" />
-        <label>Select Icon Visual</label>
+        <h3>Add New Instrument</h3>
+        <input type="text" id="new-name" placeholder="Instrument Name" />
+        <input type="text" id="new-details" placeholder="Instrument Details" />
+        <select id="new-status">
+            <option value="Working">Working</option>
+            <option value="Under Maintenance">Under Maintenance</option>
+            <option value="Not Working">Not Working</option>
+        </select>
         <select id="new-icon"></select>
         <button class="btn-primary" onclick="addEquipment()">Add to Database</button>
       </div>
@@ -188,7 +192,6 @@
 
   function fillIcons(selectId) {
     const s = document.getElementById(selectId);
-    s.innerHTML = "";
     ICON_NAMES.forEach((name, i) => {
         let o = document.createElement('option');
         o.value = name;
@@ -200,14 +203,12 @@
   fillIcons('edit-icon');
 
   function formatTopbar(iso) {
-    if(!iso) return "";
     const p = iso.split('-');
     const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     return `${p[2]}-${m[parseInt(p[1])-1]}-${p[0]}`;
   }
 
   function formatRecord(iso) {
-    if(!iso) return "";
     const p = iso.split('-');
     return `${p[2]}-${p[1]}-${p[0]}`;
   }
@@ -215,9 +216,7 @@
   async function load() {
     const { data: eq } = await _supabase.from('equipment').select('*');
     const { data: bk } = await _supabase.from('bookings').select('*');
-    if(!eq || eq.length === 0) {
-        equipList = [{id:'1', name:'Thermal Cycler', icon:'ti-temperature'},{id:'2', name:'Centrifuge', icon:'ti-refresh'},{id:'3', name:'Fluorescence Microscope', icon:'ti-microscope'},{id:'4', name:'Bio-Safety Cabinet', icon:'ti-shield'},{id:'5', name:'HPLC System', icon:'ti-chart-dots'},{id:'6', name:'Deep Freezer', icon:'ti-snowflake'}];
-    } else equipList = eq;
+    equipList = eq || [];
     bookings = bk || [];
     const n = new Date().toISOString().split('T')[0];
     document.getElementById('current-date').innerText = formatTopbar(n);
@@ -236,34 +235,53 @@
         const b = document.getElementById('welcome-banner'); b.style.display = 'block';
         setTimeout(() => { b.style.display = 'none'; }, 2500);
         renderRecords();
-    } else alert("Invalid");
+    } else alert("Invalid Credentials");
   }
 
   function renderEquipGrid() {
     const g = document.getElementById('equip-grid');
-    g.innerHTML = equipList.map(e => `
-      <div class="equip-card ${selEquip === e.id ? 'selected' : ''}" onclick="selectEquip('${e.id}')">
-        <i class="ti ${e.icon || 'ti-flask'}"></i><b>${e.name}</b>
-      </div>`).join('');
+    g.innerHTML = equipList.map(e => {
+      const status = e.status || 'Working';
+      const isSelectable = status === 'Working' || status === 'Under Maintenance';
+      const busy = bookings.some(b => b.equip_id === e.id && b.book_date === document.getElementById('book-date').value);
+      
+      let statusColor = 'var(--green-600)';
+      if(status === 'Under Maintenance') statusColor = 'var(--amber-600)';
+      if(status === 'Not Working') statusColor = 'var(--red-600)';
+
+      return `<div class="equip-card ${selEquip === e.id ? 'selected' : ''}" 
+                   onclick="${status === 'Not Working' ? `alert('Instrument is currently Not Working and cannot be booked.')` : `selectEquip('${e.id}')`}"
+                   style="${status === 'Not Working' ? 'opacity: 0.5; cursor: not-allowed;' : (status === 'Under Maintenance' ? 'background: #fffdf5;' : '')}">
+        <i class="ti ${e.icon || 'ti-flask'}"></i>
+        <b>${e.name}</b>
+        <span class="equip-status" style="color:${statusColor}">${status}</span>
+      </div>`;
+    }).join('');
   }
 
   function selectEquip(id) { selEquip = id; selSlot = null; renderEquipGrid(); document.getElementById('booking-form').style.display='block'; renderSlots(); }
   
   function renderSlots() {
+    if (!selEquip) return;
     const date = document.getElementById('book-date').value;
     const dur = parseInt(document.getElementById('duration').value);
-    document.getElementById('slots-grid').innerHTML = SLOTS.map(s => {
+    const g = document.getElementById('slots-grid');
+    
+    g.innerHTML = SLOTS.map(s => {
       const si = SLOTS.indexOf(s);
-      const booked = bookings.some(b => {
+      const isBooked = bookings.some(b => {
           if(b.equip_id !== selEquip || b.book_date !== date) return false;
           const bi = SLOTS.indexOf(b.slot);
-          return (si < bi + parseInt(b.duration)) && (si + dur > bi);
+          const be = bi + parseInt(b.duration);
+          return (si < be) && (si + dur > bi);
       });
-      return `<div class="slot ${booked ? 'booked' : ''} ${selSlot === s ? 'selected-slot' : ''}" onclick="${booked ? '' : `setS('${s}')`}">${s}</div>`;
+      return `<div class="slot ${isBooked ? 'booked' : ''} ${selSlot === s ? 'selected-slot' : ''}" 
+                   onclick="${isBooked ? '' : `setS('${s}')`}">${s}</div>`;
     }).join('');
+    document.getElementById('confirm-btn').disabled = !selSlot;
   }
 
-  function setS(s) { selSlot = s; renderSlots(); document.getElementById('confirm-btn').disabled = false; }
+  function setS(s) { selSlot = s; renderSlots(); }
 
   async function confirmBooking() {
     const gear = equipList.find(e => e.id === selEquip);
@@ -285,18 +303,20 @@
   function renderManage() {
     document.getElementById('manage-list').innerHTML = equipList.map(e => `
       <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-        <span><i class="ti ${e.icon}"></i> ${e.name}</span>
+        <span><i class="ti ${e.icon}"></i> <b>${e.name}</b> (${e.status || 'Working'})</span>
         <div>
-          <button onclick="openEdit('${e.id}', '${e.name}', '${e.icon}')" style="margin-right:10px; background:none; border:none; color:var(--green-600); cursor:pointer;">Edit</button>
+          <button onclick="openEdit('${e.id}', '${e.name}', '${e.icon}', '${e.details || ''}', '${e.status || 'Working'}')" style="margin-right:10px; background:none; border:none; color:var(--green-600); cursor:pointer;">Edit</button>
           <button class="btn-danger" onclick="triggerDelete('${e.id}', 'equipment')">Remove</button>
         </div>
       </div>`).join('');
   }
 
-  function openEdit(id, name, icon) {
+  function openEdit(id, name, icon, details, status) {
     document.getElementById('edit-id').value = id;
     document.getElementById('edit-name').value = name;
     document.getElementById('edit-icon').value = icon;
+    document.getElementById('edit-details').value = details;
+    document.getElementById('edit-status').value = status;
     document.getElementById('edit-overlay').style.display = 'flex';
   }
 
@@ -304,7 +324,9 @@
     const id = document.getElementById('edit-id').value;
     const name = document.getElementById('edit-name').value;
     const icon = document.getElementById('edit-icon').value;
-    await _supabase.from('equipment').update({ name, icon }).eq('id', id);
+    const details = document.getElementById('edit-details').value;
+    const status = document.getElementById('edit-status').value;
+    await _supabase.from('equipment').update({ name, icon, details, status }).eq('id', id);
     closeOverlay('edit-overlay');
     await load();
   }
@@ -319,10 +341,11 @@
 
   async function addEquipment() {
     const n = document.getElementById('new-name').value;
+    const d = document.getElementById('new-details').value;
+    const s = document.getElementById('new-status').value;
     const i = document.getElementById('new-icon').value;
     if(!n) return;
-    await _supabase.from('equipment').insert([{id:Date.now().toString(), name:n, icon:i}]);
-    document.getElementById('new-name').value = "";
+    await _supabase.from('equipment').insert([{id:Date.now().toString(), name:n, details:d, status:s, icon:i}]);
     await load();
   }
 
