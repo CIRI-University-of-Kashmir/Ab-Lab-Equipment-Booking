@@ -24,21 +24,19 @@
       min-height: 100vh; color: #1a1a18;
     }
 
+    /* Topbar Styling */
     .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; height: 70px; position: sticky; top: 0; z-index: 100; }
-    .topbar-icon-box { flex: 0 0 50px; }
-    .topbar-title-box { flex: 1; display: flex; align-items: center; justify-content: center; gap: 20px; }
-    .topbar-date-box { flex: 0 0 150px; text-align: right; }
-    .topbar h1 { font-size: 24px; font-weight: 700; color: var(--green-600); margin: 0; }
-    
-    .ab-lab-link { 
-      display: flex; align-items: center; gap: 6px; padding: 6px 12px; 
-      background: var(--green-50); color: var(--green-600); text-decoration: none; 
-      border-radius: 20px; font-weight: 600; font-size: 13px; transition: 0.2s;
-    }
-    .ab-lab-link:hover { background: var(--green-600); color: white; }
+    .topbar-branding { flex: 1; display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit; }
+    .topbar-icon-box { background: var(--green-50); padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .topbar-branding:hover .topbar-icon-box { background: var(--green-600); }
+    .topbar-branding:hover .topbar-icon-box i { color: white !important; }
+    .topbar h1 { font-size: 22px; font-weight: 700; color: var(--green-600); margin: 0; line-height: 1.1; }
+    .topbar-label { font-size: 10px; font-weight: 800; color: var(--green-700); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
 
+    .topbar-date-box { flex: 0 0 150px; text-align: right; }
     #current-date { font-weight: bold; color: var(--green-600); margin: 0; }
 
+    /* Layout */
     .layout { display: flex; min-height: calc(100vh - 70px); }
     .sidebar { width: 220px; background: rgba(255,255,255,0.9); border-right: 1px solid var(--border); padding: 1.5rem 1rem; backdrop-filter: blur(10px); flex-shrink: 0; }
     .nav-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: var(--radius-md); cursor: pointer; border: none; background: none; width: 100%; text-align: left; margin-bottom: 4px; font-size: 14px; color: #555; transition: 0.2s; }
@@ -47,6 +45,7 @@
     .main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; }
     .section { display: none; } .section.active { display: block; }
 
+    /* Equipment Cards */
     .equip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-bottom: 2rem; }
     .equip-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; cursor: pointer; background: white; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
     .equip-card.selected { border: 2px solid var(--green-700); background: var(--green-50); transform: translateY(-3px); }
@@ -67,9 +66,10 @@
 
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; }
     .modal-box { background: white; padding: 2rem; border-radius: var(--radius-lg); width: 100%; max-width: 400px; text-align: center; }
+    
     #welcome-banner { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green-700); color: white; padding: 12px 40px; border-radius: 50px; font-weight: bold; z-index: 2000; display: none; }
     
-    .slot { padding: 10px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 11px; cursor: pointer; background: white; }
+    .slot { padding: 10px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 11px; cursor: pointer; background: white; line-height: 1.4; }
     .slot.selected-slot { border: 2px solid var(--green-700); background: var(--green-50); color: var(--green-600); font-weight: bold; }
     .slot.booked { background: #eee !important; color: #aaa !important; cursor: not-allowed; text-decoration: line-through; }
   </style>
@@ -78,6 +78,7 @@
 
 <div id="welcome-banner">Welcome, Admin!</div>
 
+<!-- Login Overlay -->
 <div id="login-overlay" class="overlay">
   <div class="modal-box">
     <h2>Admin Access</h2>
@@ -88,6 +89,7 @@
   </div>
 </div>
 
+<!-- Edit Overlay -->
 <div id="edit-overlay" class="overlay">
   <div class="modal-box">
     <h2 style="margin-bottom: 20px">Edit Instrument</h2>
@@ -105,6 +107,7 @@
   </div>
 </div>
 
+<!-- Delete Confirmation Overlay -->
 <div id="confirm-overlay" class="overlay">
   <div class="modal-box">
     <h2 style="margin-bottom: 10px">Confirm Action</h2>
@@ -117,15 +120,15 @@
 </div>
 
 <div class="topbar">
-  <div class="topbar-icon-box">
-    <div style="background:var(--green-50); padding:8px; border-radius:8px; display:inline-block;"><i class="ti ti-flask" style="color:var(--green-600);"></i></div>
-  </div>
-  <div class="topbar-title-box">
-    <h1>Instrument Booking</h1>
-    <a href="https://ceglciri.wixsite.com/website" target="_blank" class="ab-lab-link">
-      <i class="ti ti-dna"></i> AB Lab
-    </a>
-  </div>
+  <a href="https://ceglciri.wixsite.com/website" target="_blank" class="topbar-branding">
+    <div class="topbar-icon-box">
+      <i class="ti ti-dna" style="color:var(--green-600); font-size: 20px;"></i>
+    </div>
+    <div style="display: flex; flex-direction: column;">
+      <span class="topbar-label">Lab Website</span>
+      <h1>AB Lab Instrument Booking</h1>
+    </div>
+  </a>
   <div class="topbar-date-box">
     <p id="current-date"></p>
   </div>
@@ -142,6 +145,7 @@
   </aside>
 
   <main class="main">
+    <!-- Booking Section -->
     <div id="tab-book" class="section active">
       <div class="equip-grid" id="equip-grid"></div>
       <div class="card" id="booking-form" style="display:none">
@@ -159,6 +163,7 @@
       </div>
     </div>
 
+    <!-- Records Section -->
     <div id="tab-records" class="section">
       <div id="export-container"></div>
       <div class="card" style="padding:0; overflow-x:auto">
@@ -171,6 +176,7 @@
       </div>
     </div>
 
+    <!-- Manage Section (Admin) -->
     <div id="tab-manage" class="section">
       <div class="card">
         <h3>Add New Instrument</h3>
@@ -200,6 +206,7 @@
 
   let equipList = [], bookings = [], selEquip = null, selSlot = null, isAdmin = false;
 
+  // Init Duration options
   const ds = document.getElementById('duration');
   for(let i=1; i<=24; i++) { let o = document.createElement('option'); o.value = i; o.innerText = i + 'h'; ds.appendChild(o); }
 
@@ -243,6 +250,7 @@
     return `${p[2]}-${p[1]}-${p[0]}`;
   }
 
+  // Admin Session Management
   let logoutTimer;
   function resetInactivityTimer() {
     if (!isAdmin) return;
@@ -257,7 +265,7 @@
     document.getElementById('admin-menu').style.display = 'none';
     document.getElementById('auth-btn').innerHTML = '<i class="ti ti-user-shield"></i> Admin Access';
     document.getElementById('export-container').innerHTML = ''; 
-    alert("Session expired.");
+    alert("Admin session expired.");
     location.reload(); 
   }
 
@@ -272,14 +280,13 @@
     const { data: eq } = await _supabase.from('equipment').select('*');
     const { data: bk } = await _supabase.from('bookings').select('*');
     if(!eq || eq.length === 0) {
-        equipList = [{id:'1', name:'Thermal Cycler', icon:'ti-temperature', status:'Working'}, {id:'2', name:'Centrifuge', icon:'ti-refresh', status:'Working'}];
+        equipList = [{id:'1', name:'Centrifuge', icon:'ti-refresh', status:'Working'}];
     } else { equipList = eq; }
     bookings = bk || [];
 
     const savedLogin = localStorage.getItem('labAdminLoggedIn');
     const loginTime = localStorage.getItem('adminLoginTime');
-    const currentTime = Date.now();
-    if (savedLogin === 'true' && loginTime && (currentTime - loginTime < 300000)) {
+    if (savedLogin === 'true' && (Date.now() - loginTime < 300000)) {
         isAdmin = true;
         document.getElementById('admin-menu').style.display = 'block';
         document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
@@ -308,9 +315,8 @@
         closeOverlay('login-overlay');
         document.getElementById('admin-menu').style.display = 'block';
         document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
-        const b = document.getElementById('welcome-banner'); 
-        b.style.display = 'block';
-        setTimeout(() => { b.style.display = 'none'; }, 2500);
+        document.getElementById('welcome-banner').style.display = 'block';
+        setTimeout(() => { document.getElementById('welcome-banner').style.display = 'none'; }, 2500);
         resetInactivityTimer();
         renderRecords();
         renderManage();
@@ -380,7 +386,7 @@
     const date = document.getElementById('book-date').value;
 
     if(!userName || !deptName || !purpose || !selSlot) {
-        alert("Please fill in all compulsory fields and select a time slot.");
+        alert("Please fill in all compulsory fields and select an available time slot.");
         return;
     }
 
