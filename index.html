@@ -270,7 +270,6 @@
 
 <script>
   // --- SUPABASE CONFIGURATION ---
-  // --- SUPABASE CONFIGURATION ---
   const SUPABASE_URL = 'https://bnyoriririjcavptmall.supabase.co'; 
   const SUPABASE_ANON_KEY = 'sb_publishable_VEYDiiSdkehKrzJRiYIjzA_RMe-4pNm';
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -320,7 +319,6 @@
   }
 
   function todayStr() { return new Date().toISOString().split('T')[0]; }
-  function palette(idx) { return EQUIP_PALETTE[idx % EQUIP_PALETTE.length]; }
 
   function isSlotBooked(eqId, date, slot, dur) {
     const si = SLOTS.indexOf(slot);
@@ -355,7 +353,8 @@
     const g = document.getElementById('slots-grid');
     g.innerHTML = SLOTS.map(slot => {
       const booked = isSlotBooked(selEquip, date, slot, dur);
-      return `<div class="slot ${booked ? 'booked' : ''} ${selSlot === slot ? 'selected-slot' : ''}" onclick="${booked ? '' : `selectSlot('${slot}')`}">${slot}</div>`;
+      const isSel = selSlot === slot;
+      return `<div class="slot ${booked ? 'booked' : ''} ${isSel ? 'selected-slot' : ''}" onclick="${booked ? '' : `selectSlot('${slot}')`}">${slot}</div>`;
     }).join('');
     updateBtn();
   }
@@ -364,44 +363,81 @@
   function updateBtn() { document.getElementById('confirm-btn').disabled = !selSlot; }
 
   async function confirmBooking() {
+    const gear = equipList.find(e => e.id === selEquip);
     const b = {
-      id: Date.now().toString(), equip_id: selEquip, equip_name: equipList.find(e=>e.id===selEquip).name,
-      name: document.getElementById('user-name').value, dept: document.getElementById('dept-name').value,
-      purpose: document.getElementById('purpose').value, book_date: document.getElementById('book-date').value,
-      slot: selSlot, duration: document.getElementById('duration').value
+      id: Date.now().toString(), 
+      equip_id: selEquip, 
+      equip_name: gear.name,
+      name: document.getElementById('user-name').value, 
+      dept: document.getElementById('dept-name').value, // This matches your SQL 'dept' column
+      purpose: document.getElementById('purpose').value, 
+      book_date: document.getElementById('book-date').value,
+      slot: selSlot, 
+      duration: document.getElementById('duration').value
     };
-    await _supabase.from('bookings').insert([b]);
-    await sync(); showAlert('Booked!', 'success'); switchTab('records');
+
+    const { error } = await _supabase.from('bookings').insert([b]);
+    
+    if(error) {
+      alert("Error: " + error.message);
+    } else {
+      await sync(); 
+      alert('Global Booking Confirmed!'); 
+      switchTab('records');
+    }
   }
 
   function renderRecords() {
     document.getElementById('th-admin').style.display = isAdmin ? '' : 'none';
     const tbody = document.getElementById('records-tbody');
-    tbody.innerHTML = bookings.map(b => `
-      <tr><td>${b.equip_name}</td><td>${b.name}</td><td>${b.dept}</td><td>${b.book_date}</td><td>${b.slot}</td><td>${b.duration}</td><td>${b.purpose}</td>
-      ${isAdmin ? `<td><button class="del-btn" onclick="deleteBooking('${b.id}')"><i class="ti ti-trash"></i></button></td>` : ''}</tr>
-    `).join('');
-    document.getElementById('stats-row').innerHTML = `<div class="stat-card"><div class="stat-val">${bookings.length}</div><div class="stat-lbl">Total</div></div>`;
+    
+    if (bookings.length === 0) {
+       tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">No records found in database</td></tr>';
+    } else {
+       tbody.innerHTML = bookings.map(b => `
+        <tr>
+          <td><b>${b.equip_name}</b></td>
+          <td>${b.name}</td>
+          <td>${b.dept}</td>
+          <td>${b.book_date}</td>
+          <td>${b.slot}</td>
+          <td>${b.duration}h</td>
+          <td>${b.purpose}</td>
+          ${isAdmin ? `<td><button class="del-btn" onclick="deleteBooking('${b.id}')"><i class="ti ti-trash"></i></button></td>` : ''}
+        </tr>
+      `).reverse().join('');
+    }
+    document.getElementById('stats-row').innerHTML = `<div class="stat-card"><div class="stat-val">${bookings.length}</div><div class="stat-lbl">Global Bookings</div></div>`;
   }
 
   async function deleteBooking(id) {
+    if(!confirm("Delete global record?")) return;
     await _supabase.from('bookings').delete().eq('id', id);
     await sync(); renderRecords();
   }
 
   function renderManage() {
     document.getElementById('manage-list').innerHTML = equipList.map(e => `
-      <div class="manage-equip-row"><span>${e.name}</span><button class="del-btn" onclick="removeEquip('${e.id}')"><i class="ti ti-trash"></i></button></div>
+      <div class="manage-equip-row" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;">
+        <span><i class="ti ${e.icon}"></i> ${e.name}</span>
+        <button class="del-btn" onclick="removeEquip('${e.id}')"><i class="ti ti-trash"></i></button>
+      </div>
     `).join('');
   }
 
   async function addEquipment() {
-    const e = { id: Date.now().toString(), name: document.getElementById('new-name').value, description: document.getElementById('new-desc').value, icon: document.getElementById('new-icon').value };
+    const e = { 
+      id: Date.now().toString(), 
+      name: document.getElementById('new-name').value, 
+      description: document.getElementById('new-desc').value, 
+      icon: document.getElementById('new-icon').value 
+    };
     await _supabase.from('equipment').insert([e]);
     await sync(); renderEquipGrid(); renderManage();
   }
 
   async function removeEquip(id) {
+    if(!confirm("Delete equipment and all its bookings?")) return;
     await _supabase.from('equipment').delete().eq('id', id);
     await sync(); renderEquipGrid(); renderManage();
   }
@@ -414,8 +450,7 @@
     if (tab === 'records') renderRecords();
   }
 
-  function showAlert(m, t) { alert(m); }
-  function exportCSV() { /* Export logic */ }
+  function exportCSV() { /* Logic for CSV download */ }
 
   load();
 </script>
