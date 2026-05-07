@@ -249,28 +249,47 @@ window.ontouchstart = resetInactivityTimer;
 window.onclick = resetInactivityTimer;
 window.onkeypress = resetInactivityTimer;
 
-  async function load() {
-    // ... existing Supabase data fetching ...
+ async function load() {
+    // 1. ALWAYS FETCH DATA FIRST
+    const { data: eq } = await _supabase.from('equipment').select('*');
+    const { data: bk } = await _supabase.from('bookings').select('*');
+    
+    // Set default gear if database is empty (Safety Net)
+    if(!eq || eq.length === 0) {
+        equipList = [
+            {id:'1', name:'Thermal Cycler', icon:'ti-temperature', status:'Working'},
+            {id:'2', name:'Centrifuge', icon:'ti-refresh', status:'Working'}
+        ];
+    } else { 
+        equipList = eq; 
+    }
+    bookings = bk || [];
 
+    // 2. CHECK AUTH SESSION
     const savedLogin = localStorage.getItem('labAdminLoggedIn');
     const loginTime = localStorage.getItem('adminLoginTime');
     const currentTime = Date.now();
     const fiveMinutes = 5 * 60 * 1000;
 
     if (savedLogin === 'true' && loginTime) {
-        // If more than 5 mins have passed since last activity/login
         if (currentTime - loginTime > fiveMinutes) {
-            autoLogout();
+            autoLogout(); // Session expired
         } else {
             isAdmin = true;
             document.getElementById('admin-menu').style.display = 'block';
             document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
-            resetInactivityTimer(); // Restart the timer for this fresh page load
+            resetInactivityTimer();
         }
     }
 
-    // ... existing date formatting and rendering ...
-    load(); // Refresh grid and records
+    // 3. SET DATE & RENDER UI (This brings your gear back)
+    const n = new Date().toISOString().split('T')[0];
+    document.getElementById('current-date').innerText = formatTopbar(n);
+    document.getElementById('book-date').value = n;
+    
+    renderEquipGrid(); 
+    renderRecords(); 
+    renderManage();
 }
 
   function openLogin() { if(isAdmin) { isAdmin=false; location.reload(); } else document.getElementById('login-overlay').style.display='flex'; }
