@@ -15,31 +15,17 @@
     }
 
     body { 
-  font-family: 'DM Sans', sans-serif; 
-  /* The URL must match your GitHub filename exactly */
-  background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), 
-              url('284385.jpg');
-  background-size: cover; 
-  background-attachment: fixed; 
-  background-position: center;
-  min-height: 100vh; 
-  color: #1a1a18;
-}
+      font-family: 'DM Sans', sans-serif; 
+      background: linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)), url('epigenetics-inheriting-more-than-genes.webp');
+      background-size: cover; background-attachment: fixed; background-position: center;
+      min-height: 100vh; color: #1a1a18;
+    }
 
-/* For Dark Mode users, we make the overlay darker */
-@media (prefers-color-scheme: dark) {
-  body {
-    background: linear-gradient(rgba(30,30,30,0.85), rgba(30,30,30,0.85)), 
-                url('epigenetics-inheriting-more-than-genes.webp');
-    background-size: cover;
-    background-attachment: fixed;
-    color: #f0f0f0;
-  }
-}
+    /* Topbar styling with increased font size */
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; height: 70px; position: sticky; top: 0; z-index: 100; }
+    .topbar h1 { font-size: 24px; font-weight: 700; color: var(--green-600); }
 
-    /* UI Components */
-    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; height: 60px; position: sticky; top: 0; z-index: 100; }
-    .layout { display: flex; min-height: calc(100vh - 60px); }
+    .layout { display: flex; min-height: calc(100vh - 70px); }
     .sidebar { width: 220px; background: rgba(255,255,255,0.9); border-right: 1px solid var(--border); padding: 1.5rem 1rem; backdrop-filter: blur(10px); flex-shrink: 0; }
     .nav-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: var(--radius-md); cursor: pointer; border: none; background: none; width: 100%; text-align: left; margin-bottom: 4px; font-size: 14px; color: #555; transition: 0.2s; }
     .nav-item.active { background: var(--green-50); color: var(--green-600); font-weight: 600; }
@@ -47,22 +33,13 @@
     .main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; }
     .section { display: none; } .section.active { display: block; }
 
-    /* Instrument Cards */
     .equip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-bottom: 2rem; }
-    .equip-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; cursor: pointer; background: white; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative; }
+    .equip-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; cursor: pointer; background: white; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .equip-card.selected { border: 2px solid var(--green-700); background: var(--green-50); transform: translateY(-3px); }
     .equip-card i { font-size: 32px; color: var(--green-600); margin-bottom: 10px; display: block; }
-    .equip-status { font-size: 11px; margin-top: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600; display: inline-block; }
-    .status-avail { background: var(--green-50); color: var(--green-600); }
-    .status-busy { background: var(--red-50); color: var(--red-600); }
 
-    /* Forms & Tables */
     .card { background: white; border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem; border: 1px solid var(--border); }
     input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: inherit; margin-top: 5px; }
-    .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-top: 1rem; max-height: 250px; overflow-y: auto; padding: 10px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; }
-    .slot { padding: 10px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 11px; cursor: pointer; background: white; }
-    .slot.selected-slot { border: 2px solid var(--green-700); background: var(--green-50); color: var(--green-600); font-weight: bold; }
-    .slot.booked { background: #eee; color: #aaa; cursor: not-allowed; }
 
     .records-table { width: 100%; border-collapse: collapse; background: white; }
     .records-table th, .records-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
@@ -71,75 +48,81 @@
     .btn-primary { padding: 12px 24px; background: var(--green-700); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
     .btn-danger { background: var(--red-600); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-    /* Modals & Overlays */
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-box { background: white; padding: 2rem; border-radius: var(--radius-lg); width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; }
+    .modal-box { background: white; padding: 2rem; border-radius: var(--radius-lg); width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    #welcome-banner { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green-700); color: white; padding: 12px 40px; border-radius: 50px; font-weight: bold; z-index: 2000; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* Welcome Message */
-    #welcome-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green-700); color: white; padding: 12px 30px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 2000; display: none; }
+    .slot { padding: 10px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 11px; cursor: pointer; background: white; }
+    .slot.selected-slot { border: 2px solid var(--green-700); background: var(--green-50); color: var(--green-600); font-weight: bold; }
+    .slot.booked { background: #eee; color: #aaa; cursor: not-allowed; text-decoration: line-through; }
   </style>
 </head>
 <body>
 
-<div id="welcome-box"><i class="ti ti-confetti"></i> Welcome, Admin!</div>
+<div id="welcome-banner">Welcome, Admin!</div>
 
 <div id="login-overlay" class="overlay">
   <div class="modal-box">
-    <i class="ti ti-user-shield" style="font-size: 48px; color: var(--green-700)"></i>
-    <h2 style="margin: 10px 0 20px">Admin Access</h2>
+    <h2 style="margin-bottom: 20px">Admin Access</h2>
     <input type="text" id="admin-id" placeholder="Admin ID" />
-    <input type="password" id="admin-pass" placeholder="Password" />
+    <input type="password" id="admin-pass" placeholder="Password" style="margin-top: 10px" />
     <button class="btn-primary" onclick="processLogin()">Sign In</button>
-    <button onclick="closeOverlay('login-overlay')" style="margin-top: 15px; border: none; background: none; color: #888; cursor: pointer">Close</button>
+    <button onclick="closeOverlay('login-overlay')" style="margin-top: 10px; background: none; border: none; color: #888; cursor: pointer">Cancel</button>
   </div>
 </div>
 
-<div id="delete-overlay" class="overlay">
+<div id="confirm-overlay" class="overlay">
   <div class="modal-box">
-    <i class="ti ti-alert-triangle" style="font-size: 48px; color: var(--red-600)"></i>
-    <h2 style="margin: 10px 0">Confirm Delete?</h2>
-    <p style="color: #666; margin-bottom: 20px">This action cannot be undone. The global record will be permanently removed.</p>
+    <h2 style="margin-bottom: 10px">Confirm Action</h2>
+    <p style="color: #666; margin-bottom: 20px">Are you sure you want to delete this record? This cannot be undone.</p>
     <div style="display: flex; gap: 10px">
-      <button onclick="closeOverlay('delete-overlay')" style="flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer">Cancel</button>
-      <button id="final-delete-btn" class="btn-danger" style="flex: 1">Delete</button>
+      <button onclick="closeOverlay('confirm-overlay')" style="flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer">Cancel</button>
+      <button id="final-del-btn" class="btn-danger" style="flex: 1">Confirm Delete</button>
     </div>
+  </div>
+</div>
+
+<div id="edit-overlay" class="overlay">
+  <div class="modal-box">
+    <h2 style="margin-bottom: 20px">Edit Instrument</h2>
+    <input type="hidden" id="edit-id" />
+    <input type="text" id="edit-name" placeholder="Instrument Name" style="margin-bottom: 15px;" />
+    <button class="btn-primary" onclick="saveInstrumentEdit()">Update Instrument</button>
+    <button onclick="closeOverlay('edit-overlay')" style="margin-top: 10px; background: none; border: none; color: #888; cursor: pointer">Cancel</button>
   </div>
 </div>
 
 <div class="topbar">
   <div style="background:var(--green-50); padding:8px; border-radius:8px; margin-right:12px"><i class="ti ti-flask" style="color:var(--green-600)"></i></div>
-  <h1 style="font-size:18px">AB Lab Instrument Booking</h1>
+  <h1>AB Lab Instrument Booking</h1>
   <p id="current-date" style="margin-left:auto; font-weight:bold; color:var(--green-600)"></p>
 </div>
 
 <div class="layout">
   <aside class="sidebar">
-    <button class="nav-item active" id="nav-book" onclick="switchTab('book')"><i class="ti ti-calendar-plus"></i> Book Instrument</button>
-    <button class="nav-item" id="nav-records" onclick="switchTab('records')"><i class="ti ti-clipboard-list"></i> Booking Records</button>
-    <div id="admin-tools" style="display:none">
+    <button class="nav-item active" id="nav-book" onclick="switchTab('book')"><i class="ti ti-calendar-plus"></i> Book Equipment</button>
+    <button class="nav-item" id="nav-records" onclick="switchTab('records')"><i class="ti ti-clipboard-list"></i> Global Records</button>
+    <div id="admin-menu" style="display:none">
         <button class="nav-item" id="nav-manage" onclick="switchTab('manage')"><i class="ti ti-settings"></i> Manage Gear</button>
     </div>
-    <button class="nav-item" id="auth-btn" onclick="handleAuthClick()" style="margin-top: 2rem; color: var(--green-700)"><i class="ti ti-user-shield"></i> Admin Access</button>
+    <button class="nav-item" id="auth-btn" onclick="openLogin()" style="margin-top: 2rem; color: var(--green-700)"><i class="ti ti-user-shield"></i> Admin Access</button>
   </aside>
 
   <main class="main">
     <div id="tab-book" class="section active">
       <div class="equip-grid" id="equip-grid"></div>
       <div class="card" id="booking-form" style="display:none">
-        <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 10px">Instrument Booking Form</h3>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-          <div><label style="font-size:11px; font-weight:bold">Full Name</label><input type="text" id="user-name" /></div>
-          <div><label style="font-size:11px; font-weight:bold">Lab/Dept</label><input type="text" id="dept-name" /></div>
+          <div><label>Full Name</label><input type="text" id="user-name" /></div>
+          <div><label>Lab/Dept</label><input type="text" id="dept-name" /></div>
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px">
-          <div><label style="font-size:11px; font-weight:bold">Purpose</label><input type="text" id="purpose" /></div>
-          <div><label style="font-size:11px; font-weight:bold">Date</label><input type="date" id="book-date" onchange="renderSlots()" /></div>
+          <div><label>Purpose</label><input type="text" id="purpose" /></div>
+          <div><label>Date</label><input type="date" id="book-date" onchange="renderSlots()" /></div>
         </div>
-        <div style="margin-top:10px"><label style="font-size:11px; font-weight:bold">Duration</label><select id="duration" onchange="renderSlots()"></select></div>
-        <div class="slots-grid" id="slots-grid"></div>
-        <button class="btn-primary" id="confirm-btn" onclick="confirmBooking()" disabled>Confirm Global Booking</button>
+        <div style="margin-top:10px"><label>Duration</label><select id="duration" onchange="renderSlots()"></select></div>
+        <div id="slots-grid" class="card" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-top: 1rem; max-height: 250px; overflow-y: auto;"></div>
+        <button class="btn-primary" id="confirm-btn" onclick="confirmBooking()" disabled>Confirm Booking</button>
       </div>
     </div>
 
@@ -147,7 +130,7 @@
       <div class="card" style="padding:0; overflow-x:auto">
         <table class="records-table">
           <thead>
-            <tr><th>Instrument</th><th>User</th><th>Lab</th><th>Date (DD/MM/YY)</th><th>Time</th><th>Hrs</th><th>Purpose</th><th class="adm-col" style="display:none">Action</th></tr>
+            <tr><th>Instrument</th><th>User</th><th>Lab</th><th>Date (DD-MM-YYYY)</th><th>Time</th><th>Hrs</th><th>Purpose</th><th class="adm" style="display:none">Action</th></tr>
           </thead>
           <tbody id="records-tbody"></tbody>
         </table>
@@ -164,36 +147,6 @@
     </div>
   </main>
 </div>
-  <div id="edit-modal-overlay" class="overlay">
-  <div class="modal-box" style="max-width: 450px;">
-    <h2 style="margin-bottom: 20px;">Edit Instrument</h2>
-    <input type="hidden" id="edit-id" />
-    
-    <div style="text-align: left; margin-bottom: 10px;">
-      <label style="font-size: 12px; font-weight: bold;">Instrument Name</label>
-      <input type="text" id="edit-name" placeholder="Name" />
-    </div>
-    
-    <div style="text-align: left; margin-bottom: 10px;">
-      <label style="font-size: 12px; font-weight: bold;">Details / Specification</label>
-      <input type="text" id="edit-desc" placeholder="Model, serial, or room number" />
-    </div>
-    
-    <div style="text-align: left; margin-bottom: 20px;">
-      <label style="font-size: 12px; font-weight: bold;">Operational Status</label>
-      <select id="edit-status">
-        <option value="Working">✅ Working</option>
-        <option value="Maintenance">🛠 Under Maintenance</option>
-        <option value="Broken">❌ Not Working</option>
-      </select>
-    </div>
-
-    <div style="display: flex; gap: 10px;">
-      <button onclick="closeOverlay('edit-modal-overlay')" style="flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer;">Cancel</button>
-      <button class="btn-primary" onclick="saveInstrumentUpdate()" style="flex: 1; margin-top: 0;">Update Global Gear</button>
-    </div>
-  </div>
-</div>
 
 <script>
   const SUPABASE_URL = 'https://bnyoriririjcavptmall.supabase.co'; 
@@ -206,73 +159,55 @@
   const ds = document.getElementById('duration');
   for(let i=1; i<=24; i++) { let o = document.createElement('option'); o.value = i; o.innerText = i + 'h'; ds.appendChild(o); }
 
-  function forceFormat(iso) {
+  // TOPBAR FORMAT: 07-May-2026
+  function formatTopbar(iso) {
     if(!iso) return "";
     const p = iso.split('-');
-    return `${p[2]}/${p[1]}/${p[0].substring(2)}`;
+    const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${p[2]}-${m[parseInt(p[1])-1]}-${p[0]}`;
+  }
+
+  // RECORD FORMAT: 07-05-2026
+  function formatRecord(iso) {
+    if(!iso) return "";
+    const p = iso.split('-');
+    return `${p[2]}-${p[1]}-${p[0]}`;
   }
 
   async function load() {
     const { data: eq } = await _supabase.from('equipment').select('*');
     const { data: bk } = await _supabase.from('bookings').select('*');
-    
-    // STRICT 6 INSTRUMENTS
     if(!eq || eq.length === 0) {
-        equipList = [
-            {id:'1', name:'Thermal Cycler', icon:'ti-temperature'},
-            {id:'2', name:'Centrifuge', icon:'ti-refresh'},
-            {id:'3', name:'Fluorescence Microscope', icon:'ti-microscope'},
-            {id:'4', name:'Bio-Safety Cabinet', icon:'ti-shield'},
-            {id:'5', name:'HPLC System', icon:'ti-chart-dots'},
-            {id:'6', name:'Deep Freezer (-80C)', icon:'ti-snowflake'}
-        ];
-    } else { equipList = eq; }
-    
+        equipList = [{id:'1',name:'Thermal Cycler'},{id:'2',name:'Centrifuge'},{id:'3',name:'Microscope'},{id:'4',name:'Safety Cabinet'},{id:'5',name:'HPLC'},{id:'6',name:'Deep Freezer'}];
+    } else equipList = eq;
     bookings = bk || [];
-    const n = new Date();
-    document.getElementById('current-date').innerText = forceFormat(n.toISOString().split('T')[0]);
-    document.getElementById('book-date').value = n.toISOString().split('T')[0];
+    const n = new Date().toISOString().split('T')[0];
+    document.getElementById('current-date').innerText = formatTopbar(n);
+    document.getElementById('book-date').value = n;
     renderEquipGrid(); renderRecords(); renderManage();
   }
 
-  function handleAuthClick() { if(isAdmin) { isAdmin=false; location.reload(); } else document.getElementById('login-overlay').style.display='flex'; }
+  function openLogin() { if(isAdmin) { isAdmin=false; location.reload(); } else document.getElementById('login-overlay').style.display='flex'; }
   function closeOverlay(id) { document.getElementById(id).style.display='none'; }
   
   function processLogin() {
-    const id = document.getElementById('admin-id').value;
-    const ps = document.getElementById('admin-pass').value;
-    if(id === 'Sameer1921' && ps === 'S@m33r1921') {
+    if(document.getElementById('admin-id').value==='admin' && document.getElementById('admin-pass').value==='admin123') {
         isAdmin = true; closeOverlay('login-overlay');
-        document.getElementById('admin-tools').style.display='block';
-        document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
-        
-        // Show Welcome Screen Message
-        const wb = document.getElementById('welcome-box');
-        wb.style.display = 'block';
-        setTimeout(() => { wb.style.opacity = '0'; setTimeout(() => wb.style.display = 'none', 500); }, 2500);
-        
+        document.getElementById('admin-menu').style.display='block';
+        document.getElementById('auth-btn').innerText = 'Logout';
+        const b = document.getElementById('welcome-banner'); b.style.display = 'block';
+        setTimeout(() => { b.style.display = 'none'; }, 2500);
         renderRecords();
-    } else alert("Access Denied");
+    } else alert("Invalid Credentials");
   }
 
   function renderEquipGrid() {
     const g = document.getElementById('equip-grid');
-    g.innerHTML = equipList.map(e => {
-      const isBroken = e.status === 'Broken' || e.status === 'Maintenance';
-      const busy = bookings.some(b => b.equip_id === e.id && b.book_date === document.getElementById('book-date').value);
-      
-      return `<div class="equip-card ${selEquip === e.id ? 'selected' : ''} ${isBroken ? 'broken-card' : ''}" 
-                   onclick="${isBroken ? `alert('Instrument is currently ${e.status}')` : `selectEquip('${e.id}')`}"
-                   style="${isBroken ? 'opacity:0.6; cursor:not-allowed;' : ''}">
-        <i class="ti ${e.icon || 'ti-flask'}"></i>
-        <div style="font-weight:bold">${e.name}</div>
-        <div style="font-size:10px; color:#888;">${e.description || ''}</div>
-        <span class="equip-status ${isBroken ? 'status-busy' : (busy ? 'status-busy' : 'status-avail')}">
-            ${isBroken ? e.status : (busy ? 'Busy' : 'Available Today')}
-        </span>
-      </div>`;
-    }).join('');
-}
+    g.innerHTML = equipList.map(e => `
+      <div class="equip-card ${selEquip === e.id ? 'selected' : ''}" onclick="selectEquip('${e.id}')">
+        <i class="ti ti-flask"></i><b>${e.name}</b>
+      </div>`).join('');
+  }
 
   function selectEquip(id) { selEquip = id; selSlot = null; renderEquipGrid(); document.getElementById('booking-form').style.display='block'; renderSlots(); }
   
@@ -288,170 +223,82 @@
       });
       return `<div class="slot ${booked ? 'booked' : ''} ${selSlot === s ? 'selected-slot' : ''}" onclick="${booked ? '' : `setS('${s}')`}">${s}</div>`;
     }).join('');
-    document.getElementById('confirm-btn').disabled = !selSlot;
   }
 
-  function setS(s) { selSlot = s; renderSlots(); }
+  function setS(s) { selSlot = s; renderSlots(); document.getElementById('confirm-btn').disabled = false; }
 
   async function confirmBooking() {
     const gear = equipList.find(e => e.id === selEquip);
-    const b = {
-      id: Date.now().toString(), equip_id: selEquip, equip_name: gear.name,
-      user_name: document.getElementById('user-name').value, dept_name: document.getElementById('dept-name').value,
-      purpose: document.getElementById('purpose').value, book_date: document.getElementById('book-date').value,
-      slot: selSlot, duration: document.getElementById('duration').value
-    };
-    await _supabase.from('bookings').insert([b]);
-    await load(); switchTab('records');
+    const b = { id: Date.now().toString(), equip_id: selEquip, equip_name: gear.name, user_name: document.getElementById('user-name').value, dept_name: document.getElementById('dept-name').value, purpose: document.getElementById('purpose').value, book_date: document.getElementById('book-date').value, slot: selSlot, duration: document.getElementById('duration').value };
+    await _supabase.from('bookings').insert([b]); await load(); switchTab('records');
   }
 
   function renderRecords() {
-    document.querySelectorAll('.adm-col').forEach(c => c.style.display = isAdmin ? '' : 'none');
+    document.querySelectorAll('.adm').forEach(c => c.style.display = isAdmin ? '' : 'none');
     document.getElementById('records-tbody').innerHTML = bookings.map(b => `
       <tr>
         <td><b>${b.equip_name}</b></td><td>${b.user_name}</td><td>${b.dept_name}</td>
-        <td style="font-weight:bold; color:var(--green-700)">${forceFormat(b.book_date)}</td>
+        <td style="font-weight:bold; color:var(--green-600)">${formatRecord(b.book_date)}</td>
         <td>${b.slot}</td><td>${b.duration}h</td><td>${b.purpose}</td>
-        ${isAdmin ? `<td><button class="btn-danger" onclick="triggerDelete('${b.id}')"><i class="ti ti-trash"></i></button></td>` : ''}
-      </tr>
-    `).reverse().join('');
+        ${isAdmin ? `<td><button class="btn-danger" onclick="triggerDelete('${b.id}')">Delete</button></td>` : ''}
+      </tr>`).reverse().join('');
   }
 
   function triggerDelete(id) {
-    document.getElementById('delete-overlay').style.display = 'flex';
-    document.getElementById('final-delete-btn').onclick = async () => {
+    document.getElementById('confirm-overlay').style.display = 'flex';
+    document.getElementById('final-del-btn').onclick = async () => {
         await _supabase.from('bookings').delete().eq('id', id);
-        closeOverlay('delete-overlay');
-        await load();
+        closeOverlay('confirm-overlay'); await load();
     };
   }
 
-  // --- ADMIN MANAGEMENT LOGIC ---
-
-function renderManage() {
-    const list = document.getElementById('manage-list');
-    list.innerHTML = equipList.map(e => `
-      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:white;">
+  function renderManage() {
+    document.getElementById('manage-list').innerHTML = equipList.map(e => `
+      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+        <span>${e.name}</span>
         <div>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <i class="ti ${e.icon || 'ti-flask'}" style="color:var(--green-600)"></i>
-                <b>${e.name}</b>
-            </div>
-            <div style="font-size:11px; color:#777; margin-top:4px;">
-                ${e.description || 'No details'} • 
-                <span style="color:${e.status === 'Working' ? 'green' : 'red'}">${e.status || 'Working'}</span>
-            </div>
+          <button onclick="openEditModal('${e.id}', '${e.name}')" style="margin-right:10px; background:none; border:none; color:var(--green-600); cursor:pointer;">Edit</button>
+          <button class="btn-danger" onclick="remE('${e.id}')">Remove</button>
         </div>
-        <div style="display:flex; gap:8px;">
-            <button onclick="openEditModal('${e.id}', '${e.name}', '${e.description || ''}', '${e.status || 'Working'}')" 
-                    style="padding:6px 12px; border-radius:4px; border:1px solid var(--green-600); color:var(--green-600); background:none; cursor:pointer;">
-                <i class="ti ti-edit"></i> Edit
-            </button>
-            <button class="btn-danger" onclick="triggerDelete('${e.id}', 'equipment')" style="padding:6px 12px;">
-                <i class="ti ti-trash"></i>
-            </button>
-        </div>
-      </div>
-    `).join('');
-}
+      </div>`).join('');
+  }
 
-// Open the custom window and fill it with current data
-function openEditModal(id, name, desc, status) {
+  function openEditModal(id, name) {
     document.getElementById('edit-id').value = id;
     document.getElementById('edit-name').value = name;
-    document.getElementById('edit-desc').value = desc;
-    document.getElementById('edit-status').value = status;
-    document.getElementById('edit-modal-overlay').style.display = 'flex';
-}
+    document.getElementById('edit-overlay').style.display = 'flex';
+  }
 
-// Save the data to Supabase
-async function saveInstrumentUpdate() {
+  async function saveInstrumentEdit() {
     const id = document.getElementById('edit-id').value;
     const name = document.getElementById('edit-name').value;
-    const desc = document.getElementById('edit-desc').value;
-    const status = document.getElementById('edit-status').value;
-
-    const { error } = await _supabase
-        .from('equipment')
-        .update({ 
-            name: name, 
-            description: desc, 
-            status: status 
-        })
-        .eq('id', id);
-
-    if (error) {
-        alert("Error updating: " + error.message);
-    } else {
-        closeOverlay('edit-modal-overlay');
-        await load(); // Refresh all data
-        // Small welcome-style notification
-        const wb = document.getElementById('welcome-box');
-        wb.innerText = "Instrument Updated!";
-        wb.style.display = 'block';
-        setTimeout(() => { wb.style.display = 'none'; }, 2000);
-    }
-}
-
-// Function to Edit Instrument Name
-async function editInstrument(id, oldName) {
-    const newName = prompt("Enter new name for " + oldName + ":", oldName);
-    if (!newName || newName === oldName) return;
-
-    const { error } = await _supabase
-        .from('equipment')
-        .update({ name: newName })
-        .eq('id', id);
-
-    if (error) {
-        alert("Update failed: " + error.message);
-    } else {
-        await load(); // Refresh the grid and list
-    }
-}
-
-// Function to Delete Instrument
-async function deleteInstrument(id) {
-    // Show the custom delete modal we built earlier, or use a confirm for instruments
-    if (confirm("Are you sure? Deleting this instrument will also remove its associated booking history.")) {
-        const { error } = await _supabase
-            .from('equipment')
-            .delete()
-            .eq('id', id);
-
-        if (error) {
-            alert("Delete failed: " + error.message);
-        } else {
-            await load(); // Refresh everything
-        }
-    }
-}
-  
-  async function addEquipment() {
-    const n = document.getElementById('new-name').value;
-    if(!n) return;
-    await _supabase.from('equipment').insert([{id:Date.now().toString(), name:n, icon:'ti-flask'}]);
+    await _supabase.from('equipment').update({ name }).eq('id', id);
+    closeOverlay('edit-overlay');
     await load();
   }
 
+  async function addEquipment() {
+    const n = document.getElementById('new-name').value;
+    if(!n) return;
+    await _supabase.from('equipment').insert([{id:Date.now().toString(), name:n, icon:'ti-flask'}]); await load();
+    document.getElementById('new-name').value = '';
+  }
+
+  async function remE(id) { 
+    document.getElementById('confirm-overlay').style.display = 'flex';
+    document.getElementById('final-del-btn').onclick = async () => {
+        await _supabase.from('equipment').delete().eq('id', id);
+        closeOverlay('confirm-overlay'); await load();
+    };
+  }
+
   function switchTab(t) {
-    // 1. Hide all sections and show only the selected one
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById('tab-' + t).classList.add('active');
-
-    // 2. Remove 'active' highlight from all sidebar buttons
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-    // 3. Add 'active' highlight to the button that was clicked
-    // We use the ID format: nav-book, nav-records, or nav-manage
-    const activeBtn = document.getElementById('nav-' + t);
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-    }
-
-    // 4. Refresh the table if switching to records
+    document.getElementById('tab-' + t).classList.add('active');
+    document.getElementById('nav-' + t).classList.add('active');
     if (t === 'records') renderRecords();
-}
+  }
 
   load();
 </script>
