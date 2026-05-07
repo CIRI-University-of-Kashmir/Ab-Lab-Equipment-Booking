@@ -135,11 +135,11 @@
       <div class="equip-grid" id="equip-grid"></div>
       <div class="card" id="booking-form" style="display:none">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-          <div><label>Full Name</label><input type="text" id="user-name" placeholder="Sameer Mushtaq" /></div>
-          <div><label>Lab/Dept</label><input type="text" id="dept-name" placeholder="CIRI / AB Lab"/></div>
+          <div><label>Full Name *</label><input type="text" id="user-name" placeholder="Sameer Mushtaq" required /></div>
+          <div><label>Lab/Dept *</label><input type="text" id="dept-name" placeholder="CIRI / AB Lab" required /></div>
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px">
-          <div><label>Purpose</label><input type="text" id="purpose" placeholder="HI-C Data Analysis"/></div>
+          <div><label>Purpose *</label><input type="text" id="purpose" placeholder="HI-C Data Analysis" required /></div>
           <div><label>Date</label><input type="date" id="book-date" onchange="renderSlots()" /></div>
         </div>
         <div style="margin-top:10px"><label>Duration</label><select id="duration" onchange="renderSlots()"></select></div>
@@ -337,9 +337,41 @@
   function setS(s) { selSlot = s; renderSlots(); }
 
   async function confirmBooking() {
+    const userName = document.getElementById('user-name').value.trim();
+    const deptName = document.getElementById('dept-name').value.trim();
+    const purpose = document.getElementById('purpose').value.trim();
+    const date = document.getElementById('book-date').value;
+
+    // Validation Check: Ensure all compulsory fields are filled
+    if(!userName || !deptName || !purpose || !selSlot) {
+        alert("Please fill in all compulsory fields (Name, Lab/Dept, Purpose, and Time Slot).");
+        return;
+    }
+
     const gear = equipList.find(e => e.id === selEquip);
-    const b = { id: Date.now().toString(), equip_id: selEquip, equip_name: gear.name, user_name: document.getElementById('user-name').value, dept_name: document.getElementById('dept-name').value, purpose: document.getElementById('purpose').value, book_date: document.getElementById('book-date').value, slot: selSlot, duration: document.getElementById('duration').value };
-    await _supabase.from('bookings').insert([b]); await load(); switchTab('records');
+    const b = { 
+        id: Date.now().toString(), 
+        equip_id: selEquip, 
+        equip_name: gear.name, 
+        user_name: userName, 
+        dept_name: deptName, 
+        purpose: purpose, 
+        book_date: date, 
+        slot: selSlot, 
+        duration: document.getElementById('duration').value 
+    };
+
+    const { error } = await _supabase.from('bookings').insert([b]);
+    if(error) {
+        alert("Booking failed: " + error.message);
+    } else {
+        await load(); 
+        switchTab('records');
+        // Clear form
+        document.getElementById('user-name').value = '';
+        document.getElementById('dept-name').value = '';
+        document.getElementById('purpose').value = '';
+    }
   }
 
   function renderRecords() {
