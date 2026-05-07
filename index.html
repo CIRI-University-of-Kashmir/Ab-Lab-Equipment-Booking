@@ -317,23 +317,44 @@
   
   function renderSlots() {
     if (!selEquip) return;
-    const date = document.getElementById('book-date').value;
+    const dateInput = document.getElementById('book-date').value;
     const dur = parseInt(document.getElementById('duration').value);
     const g = document.getElementById('slots-grid');
-    g.innerHTML = SLOTS.map(s => {
-      const si = SLOTS.indexOf(s);
+    
+    // Get current time details for past-slot blocking
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const currentHour = now.getHours();
+
+    g.innerHTML = SLOTS.map((s, si) => {
+      // 1. Check if slot is in the past (only for today)
+      let isPast = false;
+      if (dateInput === todayStr) {
+        // Convert SLOTS string (e.g., "07:00 PM") to 24h number for comparison
+        let hour = si; 
+        if (hour <= currentHour) isPast = true;
+      }
+
+      // 2. Check if slot is blocked by any existing booking (including duration overlap)
       const isBooked = bookings.some(b => {
-          if(b.equip_id !== selEquip || b.book_date !== date) return false;
-          const bi = SLOTS.indexOf(b.slot);
-          const be = bi + parseInt(b.duration);
-          return (si < be) && (si + dur > bi);
+          if(b.equip_id !== selEquip || b.book_date !== dateInput) return false;
+          const bi = SLOTS.indexOf(b.slot); // Booked Index
+          const bDur = parseInt(b.duration);
+          const be = bi + bDur; // End Index
+          
+          // Logic: Current slot index (si) falls within a booked range 
+          // OR the user's requested duration (dur) would overlap an existing start
+          return (si >= bi && si < be) || (si < bi && si + dur > bi);
       });
-      return `<div class="slot ${isBooked ? 'booked' : ''} ${selSlot === s ? 'selected-slot' : ''}" 
-                   onclick="${isBooked ? '' : `setS('${s}')`}">${s}</div>`;
+
+      const isDisabled = isBooked || isPast;
+
+      return `<div class="slot ${isDisabled ? 'booked' : ''} ${selSlot === s ? 'selected-slot' : ''}" 
+                   onclick="${isDisabled ? '' : `setS('${s}')`}">${s} ${isPast && !isBooked ? '(Past)' : ''}</div>`;
     }).join('');
+    
     document.getElementById('confirm-btn').disabled = !selSlot;
   }
-
   function setS(s) { selSlot = s; renderSlots(); }
 
   async function confirmBooking() {
