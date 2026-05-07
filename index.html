@@ -73,8 +73,8 @@
   <div class="modal-box">
     <i class="ti ti-user-shield" style="font-size: 48px; color: var(--green-700)"></i>
     <h2 style="margin: 10px 0 20px">Admin Access</h2>
-    <input type="text" id="admin-id" placeholder="Admin ID (Sameer1921)" />
-    <input type="password" id="admin-pass" placeholder="Password (S@m33r1921)" />
+    <input type="text" id="admin-id" placeholder="Admin ID" />
+    <input type="password" id="admin-pass" placeholder="Password" />
     <button class="btn-primary" onclick="processLogin()">Sign In</button>
     <button onclick="closeOverlay('login-overlay')" style="margin-top: 15px; border: none; background: none; color: #888; cursor: pointer">Close</button>
   </div>
@@ -195,7 +195,7 @@
   function processLogin() {
     const id = document.getElementById('admin-id').value;
     const ps = document.getElementById('admin-pass').value;
-    if(id === 'admin' && ps === 'admin123') {
+    if(id === 'Sameer1921' && ps === 'S@m33r1921') {
         isAdmin = true; closeOverlay('login-overlay');
         document.getElementById('admin-tools').style.display='block';
         document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
