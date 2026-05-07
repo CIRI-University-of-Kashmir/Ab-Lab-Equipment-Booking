@@ -21,9 +21,10 @@
       min-height: 100vh; color: #1a1a18;
     }
 
-    /* Topbar styling with increased font size */
-    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; height: 70px; position: sticky; top: 0; z-index: 100; }
-    .topbar h1 { font-size: 24px; font-weight: 700; color: var(--green-600); }
+    /* Centered Topbar Title */
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 70px; position: sticky; top: 0; z-index: 100; }
+    .topbar h1 { font-size: 24px; font-weight: 700; color: var(--green-600); text-align: center; grid-column: 2; }
+    #current-date { font-weight: bold; color: var(--green-600); text-align: right; grid-column: 3; }
 
     .layout { display: flex; min-height: calc(100vh - 70px); }
     .sidebar { width: 220px; background: rgba(255,255,255,0.9); border-right: 1px solid var(--border); padding: 1.5rem 1rem; backdrop-filter: blur(10px); flex-shrink: 0; }
@@ -34,9 +35,9 @@
     .section { display: none; } .section.active { display: block; }
 
     .equip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-bottom: 2rem; }
-    .equip-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; cursor: pointer; background: white; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .equip-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; cursor: pointer; background: white; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
     .equip-card.selected { border: 2px solid var(--green-700); background: var(--green-50); transform: translateY(-3px); }
-    .equip-card i { font-size: 32px; color: var(--green-600); margin-bottom: 10px; display: block; }
+    .equip-card i { font-size: 36px; color: var(--green-600); margin-bottom: 12px; display: block; }
 
     .card { background: white; border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem; border: 1px solid var(--border); }
     input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: inherit; margin-top: 5px; }
@@ -49,8 +50,8 @@
     .btn-danger { background: var(--red-600); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-box { background: white; padding: 2rem; border-radius: var(--radius-lg); width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    #welcome-banner { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green-700); color: white; padding: 12px 40px; border-radius: 50px; font-weight: bold; z-index: 2000; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .modal-box { background: white; padding: 2rem; border-radius: var(--radius-lg); width: 100%; max-width: 400px; text-align: center; }
+    #welcome-banner { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green-700); color: white; padding: 12px 40px; border-radius: 50px; font-weight: bold; z-index: 2000; display: none; }
     
     .slot { padding: 10px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 11px; cursor: pointer; background: white; }
     .slot.selected-slot { border: 2px solid var(--green-700); background: var(--green-50); color: var(--green-600); font-weight: bold; }
@@ -63,7 +64,7 @@
 
 <div id="login-overlay" class="overlay">
   <div class="modal-box">
-    <h2 style="margin-bottom: 20px">Admin Access</h2>
+    <h2>Admin Access</h2>
     <input type="text" id="admin-id" placeholder="Admin ID" />
     <input type="password" id="admin-pass" placeholder="Password" style="margin-top: 10px" />
     <button class="btn-primary" onclick="processLogin()">Sign In</button>
@@ -73,8 +74,8 @@
 
 <div id="confirm-overlay" class="overlay">
   <div class="modal-box">
-    <h2 style="margin-bottom: 10px">Confirm Action</h2>
-    <p style="color: #666; margin-bottom: 20px">Are you sure you want to delete this record? This cannot be undone.</p>
+    <h2>Confirm Action</h2>
+    <p style="color: #666; margin-bottom: 20px">Are you sure? This cannot be undone.</p>
     <div style="display: flex; gap: 10px">
       <button onclick="closeOverlay('confirm-overlay')" style="flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer">Cancel</button>
       <button id="final-del-btn" class="btn-danger" style="flex: 1">Confirm Delete</button>
@@ -82,20 +83,10 @@
   </div>
 </div>
 
-<div id="edit-overlay" class="overlay">
-  <div class="modal-box">
-    <h2 style="margin-bottom: 20px">Edit Instrument</h2>
-    <input type="hidden" id="edit-id" />
-    <input type="text" id="edit-name" placeholder="Instrument Name" style="margin-bottom: 15px;" />
-    <button class="btn-primary" onclick="saveInstrumentEdit()">Update Instrument</button>
-    <button onclick="closeOverlay('edit-overlay')" style="margin-top: 10px; background: none; border: none; color: #888; cursor: pointer">Cancel</button>
-  </div>
-</div>
-
 <div class="topbar">
-  <div style="background:var(--green-50); padding:8px; border-radius:8px; margin-right:12px"><i class="ti ti-flask" style="color:var(--green-600)"></i></div>
+  <div style="background:var(--green-50); padding:8px; border-radius:8px;"><i class="ti ti-flask" style="color:var(--green-600)"></i></div>
   <h1>AB Lab Instrument Booking</h1>
-  <p id="current-date" style="margin-left:auto; font-weight:bold; color:var(--green-600)"></p>
+  <p id="current-date"></p>
 </div>
 
 <div class="layout">
@@ -141,6 +132,8 @@
       <div class="card">
         <h3>Add Instrument</h3>
         <input type="text" id="new-name" placeholder="Name" />
+        <label>Select Icon</label>
+        <select id="new-icon"></select>
         <button class="btn-primary" onclick="addEquipment()">Add to Database</button>
       </div>
       <div id="manage-list" class="card" style="padding:0"></div>
@@ -154,12 +147,20 @@
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const SLOTS = ['12:00 AM','01:00 AM','02:00 AM','03:00 AM','04:00 AM','05:00 AM','06:00 AM','07:00 AM','08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM','07:00 PM','08:00 PM','09:00 PM','10:00 PM','11:00 PM'];
+  
+  // Icon Library for Manage Tab
+  const ICON_LIST = ["ti-flask","ti-temperature","ti-refresh","ti-microscope","ti-shield","ti-chart-dots","ti-snowflake","ti-droplet","ti-dna","ti-test-pipe","ti-ripple","ti-atom","ti-binary","ti-biohazard","ti-virus","ti-vaccine","ti-medical-cross","ti-pill","ti-stethoscope","ti-heart-rate-monitor","ti-eyeglass","ti-id","ti-tool","ti-settings","ti-database","ti-server","ti-cpu","ti-device-laptop","ti-device-desktop","ti-battery-charging","ti-plug","ti-bolt","ti-flame","ti-leaf","ti-wind","ti-sun","ti-moon","ti-cloud","ti-umbrella","ti-anchor","ti-plane","ti-car","ti-truck","ti-microchip","ti-antenna","ti-wifi","ti-broadcast","ti-lock","ti-key","ti-bell","ti-search","ti-star","ti-bookmark","ti-calendar","ti-clock","ti-camera","ti-video","ti-microphone","ti-headphones","ti-music","ti-volume","ti-mail","ti-message","ti-phone","ti-user","ti-users","ti-trash","ti-pencil","ti-edit","ti-copy","ti-clipboard","ti-folder","ti-file","ti-download","ti-upload","ti-link","ti-external-link","ti-check","ti-x","ti-alert-circle","ti-help","ti-info-circle","ti-circle-check","ti-circle-x","ti-square-check","ti-square-x","ti-arrow-up","ti-arrow-down","ti-arrow-left","ti-arrow-right","ti-chevron-up","ti-chevron-down","ti-chevron-left","ti-chevron-right","ti-player-play","ti-player-pause","ti-player-stop","ti-layout-grid","ti-layout-list"];
+
   let equipList = [], bookings = [], selEquip = null, selSlot = null, isAdmin = false;
 
+  // Initialize Duration 1-24
   const ds = document.getElementById('duration');
   for(let i=1; i<=24; i++) { let o = document.createElement('option'); o.value = i; o.innerText = i + 'h'; ds.appendChild(o); }
 
-  // TOPBAR FORMAT: 07-May-2026
+  // Populate Icons Dropdown
+  const is = document.getElementById('new-icon');
+  ICON_LIST.forEach(ic => { let o = document.createElement('option'); o.value = ic; o.innerText = ic.replace('ti-',''); is.appendChild(o); });
+
   function formatTopbar(iso) {
     if(!iso) return "";
     const p = iso.split('-');
@@ -167,19 +168,28 @@
     return `${p[2]}-${m[parseInt(p[1])-1]}-${p[0]}`;
   }
 
-  // RECORD FORMAT: 07-05-2026
   function formatRecord(iso) {
     if(!iso) return "";
     const p = iso.split('-');
-    return `${p[2]}-${p[1]}-${p[0]}`;
+    return `${p[2]}-${p[1]}-${p[0]}`; // DD-MM-YYYY
   }
 
   async function load() {
     const { data: eq } = await _supabase.from('equipment').select('*');
     const { data: bk } = await _supabase.from('bookings').select('*');
+    
+    // Seed 6 instruments with UNIQUE icons
     if(!eq || eq.length === 0) {
-        equipList = [{id:'1',name:'Thermal Cycler'},{id:'2',name:'Centrifuge'},{id:'3',name:'Microscope'},{id:'4',name:'Safety Cabinet'},{id:'5',name:'HPLC'},{id:'6',name:'Deep Freezer'}];
-    } else equipList = eq;
+        equipList = [
+            {id:'1', name:'Thermal Cycler', icon:'ti-temperature'},
+            {id:'2', name:'Centrifuge', icon:'ti-refresh'},
+            {id:'3', name:'Fluorescence Microscope', icon:'ti-microscope'},
+            {id:'4', name:'Bio-Safety Cabinet', icon:'ti-shield'},
+            {id:'5', name:'HPLC System', icon:'ti-chart-dots'},
+            {id:'6', name:'Deep Freezer (-80C)', icon:'ti-snowflake'}
+        ];
+    } else { equipList = eq; }
+    
     bookings = bk || [];
     const n = new Date().toISOString().split('T')[0];
     document.getElementById('current-date').innerText = formatTopbar(n);
@@ -191,7 +201,7 @@
   function closeOverlay(id) { document.getElementById(id).style.display='none'; }
   
   function processLogin() {
-    if(document.getElementById('admin-id').value==='admin' && document.getElementById('admin-pass').value==='admin123') {
+    if(document.getElementById('admin-id').value==='Sameer1921' && document.getElementById('admin-pass').value==='S@m33r1921') {
         isAdmin = true; closeOverlay('login-overlay');
         document.getElementById('admin-menu').style.display='block';
         document.getElementById('auth-btn').innerText = 'Logout';
@@ -203,10 +213,12 @@
 
   function renderEquipGrid() {
     const g = document.getElementById('equip-grid');
-    g.innerHTML = equipList.map(e => `
-      <div class="equip-card ${selEquip === e.id ? 'selected' : ''}" onclick="selectEquip('${e.id}')">
-        <i class="ti ti-flask"></i><b>${e.name}</b>
-      </div>`).join('');
+    g.innerHTML = equipList.map(e => {
+      const busy = bookings.some(b => b.equip_id === e.id && b.book_date === document.getElementById('book-date').value);
+      return `<div class="equip-card ${selEquip === e.id ? 'selected' : ''}" onclick="selectEquip('${e.id}')">
+        <i class="ti ${e.icon || 'ti-flask'}"></i><b>${e.name}</b>
+      </div>`;
+    }).join('');
   }
 
   function selectEquip(id) { selEquip = id; selSlot = null; renderEquipGrid(); document.getElementById('booking-form').style.display='block'; renderSlots(); }
@@ -254,43 +266,20 @@
 
   function renderManage() {
     document.getElementById('manage-list').innerHTML = equipList.map(e => `
-      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-        <span>${e.name}</span>
-        <div>
-          <button onclick="openEditModal('${e.id}', '${e.name}')" style="margin-right:10px; background:none; border:none; color:var(--green-600); cursor:pointer;">Edit</button>
-          <button class="btn-danger" onclick="remE('${e.id}')">Remove</button>
-        </div>
+      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between">
+        <span><i class="ti ${e.icon}"></i> ${e.name}</span><button class="btn-danger" onclick="remE('${e.id}')">Remove</button>
       </div>`).join('');
-  }
-
-  function openEditModal(id, name) {
-    document.getElementById('edit-id').value = id;
-    document.getElementById('edit-name').value = name;
-    document.getElementById('edit-overlay').style.display = 'flex';
-  }
-
-  async function saveInstrumentEdit() {
-    const id = document.getElementById('edit-id').value;
-    const name = document.getElementById('edit-name').value;
-    await _supabase.from('equipment').update({ name }).eq('id', id);
-    closeOverlay('edit-overlay');
-    await load();
   }
 
   async function addEquipment() {
     const n = document.getElementById('new-name').value;
+    const i = document.getElementById('new-icon').value;
     if(!n) return;
-    await _supabase.from('equipment').insert([{id:Date.now().toString(), name:n, icon:'ti-flask'}]); await load();
+    await _supabase.from('equipment').insert([{id:Date.now().toString(), name:n, icon:i}]); await load();
     document.getElementById('new-name').value = '';
   }
 
-  async function remE(id) { 
-    document.getElementById('confirm-overlay').style.display = 'flex';
-    document.getElementById('final-del-btn').onclick = async () => {
-        await _supabase.from('equipment').delete().eq('id', id);
-        closeOverlay('confirm-overlay'); await load();
-    };
-  }
+  async function remE(id) { await _supabase.from('equipment').delete().eq('id',id); await load(); }
 
   function switchTab(t) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
