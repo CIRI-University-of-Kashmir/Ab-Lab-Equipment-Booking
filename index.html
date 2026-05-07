@@ -204,15 +204,38 @@
 
   function renderRecords() {
     const tbody = document.getElementById('records-tbody');
-    tbody.innerHTML = bookings.map(b => `
-      <tr>
-        <td><b>${b.equip_name}</b></td><td>${b.user_name}</td><td>${b.dept_name}</td>
-        <td>${formatDate(b.book_date)}</td><td>${b.slot}</td><td>${b.duration}h</td><td>${b.purpose}</td>
-        ${isAdmin ? `<td><button onclick="deleteBooking('${b.id}')" style="color:red; border:none; background:none"><i class="ti ti-trash"></i></button></td>` : ''}
-      </tr>
-    `).reverse().join('');
-  }
+    
+    // Safety check: if no bookings, show a message
+    if (bookings.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">No bookings found in database</td></tr>';
+        return;
+    }
 
+    tbody.innerHTML = bookings.map(b => {
+      // FORCE FORMATTING HERE
+      let displayDate = b.book_date; // fallback
+      if (b.book_date && b.book_date.includes('-')) {
+          const parts = b.book_date.split('-'); // [2026, 05, 07]
+          const year = parts[0].substring(2);
+          const month = parts[1];
+          const day = parts[2];
+          displayDate = `${day}/${month}/${year}`; // Result: 07/05/26
+      }
+
+      return `
+        <tr>
+          <td><b>${b.equip_name}</b></td>
+          <td>${b.user_name}</td>
+          <td>${b.dept_name}</td>
+          <td style="font-weight:bold; color:var(--green-600)">${displayDate}</td>
+          <td>${b.slot}</td>
+          <td>${b.duration}h</td>
+          <td style="color:var(--text-secondary)">${b.purpose}</td>
+          ${isAdmin ? `<td><button onclick="deleteBooking('${b.id}')" style="color:var(--red-600); border:none; background:none; cursor:pointer"><i class="ti ti-trash"></i></button></td>` : ''}
+        </tr>
+      `;
+    }).reverse().join('');
+}
   function switchTab(t) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
