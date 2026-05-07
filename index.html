@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <title>AB Lab | Equipment Booking</title>
+  <title>AB Lab | Instrument Booking</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,64 +16,79 @@
 
     body { 
       font-family: 'DM Sans', sans-serif; 
-      background: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)), url('epigenetics-inheriting-more-than-genes.webp');
+      background: linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)), url('epigenetics-inheriting-more-than-genes.webp');
       background-size: cover; background-attachment: fixed; background-position: center;
-      min-height: 100vh; color: #1a1a18;
+      min-height: 100vh; color: #1a1a18; overflow-x: hidden;
     }
 
+    /* UI Components */
     .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; height: 60px; position: sticky; top: 0; z-index: 100; }
     .layout { display: flex; min-height: calc(100vh - 60px); }
-    
     .sidebar { width: 220px; background: rgba(255,255,255,0.9); border-right: 1px solid var(--border); padding: 1.5rem 1rem; backdrop-filter: blur(10px); flex-shrink: 0; }
     .nav-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: var(--radius-md); cursor: pointer; border: none; background: none; width: 100%; text-align: left; margin-bottom: 4px; font-size: 14px; color: #555; transition: 0.2s; }
     .nav-item.active { background: var(--green-50); color: var(--green-600); font-weight: 600; }
-    .nav-item:hover:not(.active) { background: #f0f0f0; }
 
     .main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; }
     .section { display: none; } .section.active { display: block; }
 
+    /* Instrument Cards */
     .equip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-bottom: 2rem; }
-    .equip-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; cursor: pointer; background: white; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    .equip-card.selected { border: 2px solid var(--green-700); background: var(--green-50); transform: scale(1.02); }
+    .equip-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; cursor: pointer; background: white; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative; }
+    .equip-card.selected { border: 2px solid var(--green-700); background: var(--green-50); transform: translateY(-3px); }
     .equip-card i { font-size: 32px; color: var(--green-600); margin-bottom: 10px; display: block; }
     .equip-status { font-size: 11px; margin-top: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600; display: inline-block; }
     .status-avail { background: var(--green-50); color: var(--green-600); }
     .status-busy { background: var(--red-50); color: var(--red-600); }
 
+    /* Forms & Tables */
     .card { background: white; border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem; border: 1px solid var(--border); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-    input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: inherit; font-size: 14px; }
-    input:focus { outline: none; border-color: var(--green-700); }
-
+    input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: inherit; margin-top: 5px; }
     .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-top: 1rem; max-height: 250px; overflow-y: auto; padding: 10px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; }
     .slot { padding: 10px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 11px; cursor: pointer; background: white; }
     .slot.selected-slot { border: 2px solid var(--green-700); background: var(--green-50); color: var(--green-600); font-weight: bold; }
-    .slot.booked { background: #eee; color: #aaa; cursor: not-allowed; text-decoration: line-through; }
+    .slot.booked { background: #eee; color: #aaa; cursor: not-allowed; }
 
     .records-table { width: 100%; border-collapse: collapse; background: white; }
     .records-table th, .records-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
-    .records-table th { background: #f8f9fa; color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .records-table th { background: #f8f9fa; color: #666; font-size: 11px; text-transform: uppercase; }
     
-    .btn-primary { padding: 12px 24px; background: var(--green-700); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-    .btn-primary:hover { background: var(--green-600); }
-    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
-    .btn-danger { background: var(--red-600); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-primary { padding: 12px 24px; background: var(--green-700); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+    .btn-danger { background: var(--red-600); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-    /* Admin Login Overlay */
-    #login-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; }
-    .login-box { background: white; padding: 2.5rem; border-radius: var(--radius-lg); width: 100%; max-width: 400px; text-align: center; }
+    /* Modals & Overlays */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-box { background: white; padding: 2rem; border-radius: var(--radius-lg); width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; }
+    
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Welcome Message */
+    #welcome-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green-700); color: white; padding: 12px 30px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 2000; display: none; }
   </style>
 </head>
 <body>
 
-<div id="login-overlay">
-  <div class="login-box">
-    <i class="ti ti-lock" style="font-size: 40px; color: var(--green-700)"></i>
-    <h2 style="margin: 1rem 0">Admin Login</h2>
-    <input type="text" id="admin-id" placeholder="Admin ID" style="margin-bottom: 10px" />
-    <input type="password" id="admin-pass" placeholder="Password" style="margin-bottom: 20px" />
-    <button class="btn-primary" onclick="processLogin()" style="width: 100%">Sign In</button>
-    <button onclick="closeLogin()" style="margin-top: 15px; background: none; border: none; color: #777; cursor: pointer">Cancel</button>
+<div id="welcome-box"><i class="ti ti-confetti"></i> Welcome, Admin!</div>
+
+<div id="login-overlay" class="overlay">
+  <div class="modal-box">
+    <i class="ti ti-user-shield" style="font-size: 48px; color: var(--green-700)"></i>
+    <h2 style="margin: 10px 0 20px">Admin Access</h2>
+    <input type="text" id="admin-id" placeholder="Admin ID (Sameer1921)" />
+    <input type="password" id="admin-pass" placeholder="Password (S@m33r1921)" />
+    <button class="btn-primary" onclick="processLogin()">Sign In</button>
+    <button onclick="closeOverlay('login-overlay')" style="margin-top: 15px; border: none; background: none; color: #888; cursor: pointer">Close</button>
+  </div>
+</div>
+
+<div id="delete-overlay" class="overlay">
+  <div class="modal-box">
+    <i class="ti ti-alert-triangle" style="font-size: 48px; color: var(--red-600)"></i>
+    <h2 style="margin: 10px 0">Confirm Delete?</h2>
+    <p style="color: #666; margin-bottom: 20px">This action cannot be undone. The global record will be permanently removed.</p>
+    <div style="display: flex; gap: 10px">
+      <button onclick="closeOverlay('delete-overlay')" style="flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer">Cancel</button>
+      <button id="final-delete-btn" class="btn-danger" style="flex: 1">Delete</button>
+    </div>
   </div>
 </div>
 
@@ -85,50 +100,38 @@
 
 <div class="layout">
   <aside class="sidebar">
-    <div style="font-size: 10px; text-transform: uppercase; color: #999; margin-bottom: 10px; padding-left: 12px">Menu</div>
     <button class="nav-item active" id="nav-book" onclick="switchTab('book')"><i class="ti ti-calendar-plus"></i> Book Equipment</button>
     <button class="nav-item" id="nav-records" onclick="switchTab('records')"><i class="ti ti-clipboard-list"></i> Global Records</button>
-    
-    <div id="admin-sidebar-section" style="display:none">
-        <div style="font-size: 10px; text-transform: uppercase; color: #999; margin: 20px 0 10px; padding-left: 12px">Admin Tools</div>
+    <div id="admin-tools" style="display:none">
         <button class="nav-item" id="nav-manage" onclick="switchTab('manage')"><i class="ti ti-settings"></i> Manage Gear</button>
     </div>
-
-    <button class="nav-item" id="auth-btn" onclick="openLogin()" style="margin-top: 2rem; color: var(--green-700)"><i class="ti ti-user-shield"></i> Admin Access</button>
+    <button class="nav-item" id="auth-btn" onclick="handleAuthClick()" style="margin-top: 2rem; color: var(--green-700)"><i class="ti ti-user-shield"></i> Admin Access</button>
   </aside>
 
   <main class="main">
     <div id="tab-book" class="section active">
-      <h2 style="margin-bottom: 1.5rem">Available Instruments</h2>
       <div class="equip-grid" id="equip-grid"></div>
-      
       <div class="card" id="booking-form" style="display:none">
-        <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 10px">Booking Details</h3>
-        <div class="form-row">
-          <div class="form-group"><label style="font-size: 12px; font-weight: 600">Full Name</label><input type="text" id="user-name" placeholder="Sameer Mushtaq" /></div>
-          <div class="form-group"><label style="font-size: 12px; font-weight: 600">Lab/Department</label><input type="text" id="dept-name" placeholder="Genomics Lab" /></div>
+        <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 10px">Secure Booking Form</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
+          <div><label style="font-size:11px; font-weight:bold">Full Name</label><input type="text" id="user-name" /></div>
+          <div><label style="font-size:11px; font-weight:bold">Lab/Dept</label><input type="text" id="dept-name" /></div>
         </div>
-        <div class="form-row">
-          <div class="form-group"><label style="font-size: 12px; font-weight: 600">Purpose</label><input type="text" id="purpose" placeholder="Analysis" /></div>
-          <div class="form-group"><label style="font-size: 12px; font-weight: 600">Date</label><input type="date" id="book-date" onchange="renderSlots()" /></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px">
+          <div><label style="font-size:11px; font-weight:bold">Purpose</label><input type="text" id="purpose" /></div>
+          <div><label style="font-size:11px; font-weight:bold">Date</label><input type="date" id="book-date" onchange="renderSlots()" /></div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label style="font-size: 12px; font-weight: 600">Duration</label>
-            <select id="duration" onchange="renderSlots()"></select>
-          </div>
-        </div>
+        <div style="margin-top:10px"><label style="font-size:11px; font-weight:bold">Duration</label><select id="duration" onchange="renderSlots()"></select></div>
         <div class="slots-grid" id="slots-grid"></div>
-        <button class="btn-primary" id="confirm-btn" onclick="confirmBooking()" disabled style="margin-top: 20px">Confirm Global Booking</button>
+        <button class="btn-primary" id="confirm-btn" onclick="confirmBooking()" disabled>Confirm Global Booking</button>
       </div>
     </div>
 
     <div id="tab-records" class="section">
-      <h2 style="margin-bottom: 1.5rem">Global Records (DD/MM/YY)</h2>
       <div class="card" style="padding:0; overflow-x:auto">
         <table class="records-table">
           <thead>
-            <tr><th>Instrument</th><th>User</th><th>Lab</th><th>Date</th><th>Time</th><th>Hrs</th><th>Purpose</th><th class="admin-only" style="display:none">Action</th></tr>
+            <tr><th>Instrument</th><th>User</th><th>Lab</th><th>Date (DD/MM/YY)</th><th>Time</th><th>Hrs</th><th>Purpose</th><th class="adm-col" style="display:none">Action</th></tr>
           </thead>
           <tbody id="records-tbody"></tbody>
         </table>
@@ -136,22 +139,12 @@
     </div>
 
     <div id="tab-manage" class="section">
-      <h2 style="margin-bottom: 1.5rem">Manage Instrument Database</h2>
       <div class="card">
-        <h3 style="margin-bottom: 1rem">Add New Gear</h3>
-        <div class="form-row">
-          <input type="text" id="new-name" placeholder="Instrument Name (e.g. Sequencer)" />
-          <select id="new-icon">
-            <option value="ti-refresh">Centrifuge</option>
-            <option value="ti-temperature">Thermal Cycler</option>
-            <option value="ti-microscope">Microscope</option>
-            <option value="ti-database">Server/Workstation</option>
-            <option value="ti-flask">General Flask</option>
-          </select>
-        </div>
-        <button class="btn-primary" onclick="addEquipment()">Add Instrument to Global Grid</button>
+        <h3>Add Instrument</h3>
+        <input type="text" id="new-name" placeholder="Name" />
+        <button class="btn-primary" onclick="addEquipment()">Add to Database</button>
       </div>
-      <div id="manage-list" class="card" style="padding: 0"></div>
+      <div id="manage-list" class="card" style="padding:0"></div>
     </div>
   </main>
 </div>
@@ -161,93 +154,59 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_VEYDiiSdkehKrzJRiYIjzA_RMe-4pNm';
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const SLOTS = [
-    '12:00 AM','01:00 AM','02:00 AM','03:00 AM','04:00 AM','05:00 AM','06:00 AM','07:00 AM',
-    '08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM',
-    '04:00 PM','05:00 PM','06:00 PM','07:00 PM','08:00 PM','09:00 PM','10:00 PM','11:00 PM'
-  ];
+  const SLOTS = ['12:00 AM','01:00 AM','02:00 AM','03:00 AM','04:00 AM','05:00 AM','06:00 AM','07:00 AM','08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM','07:00 PM','08:00 PM','09:00 PM','10:00 PM','11:00 PM'];
+  let equipList = [], bookings = [], selEquip = null, selSlot = null, isAdmin = false;
 
-  let equipList = [], bookings = [], selEquip = null, selSlot = null, isLoggedIn = false;
+  const ds = document.getElementById('duration');
+  for(let i=1; i<=24; i++) { let o = document.createElement('option'); o.value = i; o.innerText = i + 'h'; ds.appendChild(o); }
 
-  // Initialize Duration 1-24
-  const durSelect = document.getElementById('duration');
-  for(let i=1; i<=24; i++) {
-    let opt = document.createElement('option');
-    opt.value = i; opt.innerHTML = i + (i==1 ? ' Hour' : ' Hours');
-    durSelect.appendChild(opt);
-  }
-
-  function getDisplayDate(isoDate) {
-    if(!isoDate) return "";
-    const p = isoDate.split('-');
+  function forceFormat(iso) {
+    if(!iso) return "";
+    const p = iso.split('-');
     return `${p[2]}/${p[1]}/${p[0].substring(2)}`;
   }
 
   async function load() {
-    const { data: eqData } = await _supabase.from('equipment').select('*');
-    const { data: bkData } = await _supabase.from('bookings').select('*');
+    const { data: eq } = await _supabase.from('equipment').select('*');
+    const { data: bk } = await _supabase.from('bookings').select('*');
     
-    // Seed 6 instruments if empty
-    if(!eqData || eqData.length === 0) {
+    // STRICT 6 INSTRUMENTS
+    if(!eq || eq.length === 0) {
         equipList = [
             {id:'1', name:'Thermal Cycler', icon:'ti-temperature'},
             {id:'2', name:'Centrifuge', icon:'ti-refresh'},
-            {id:'3', name:'Confocal Microscope', icon:'ti-microscope'},
+            {id:'3', name:'Fluorescence Microscope', icon:'ti-microscope'},
             {id:'4', name:'Bio-Safety Cabinet', icon:'ti-shield'},
             {id:'5', name:'HPLC System', icon:'ti-chart-dots'},
             {id:'6', name:'Deep Freezer (-80C)', icon:'ti-snowflake'}
         ];
-    } else {
-        equipList = eqData;
-    }
-
-    bookings = bkData || [];
+    } else { equipList = eq; }
     
-    const now = new Date();
-    document.getElementById('current-date').textContent = getDisplayDate(now.toISOString().split('T')[0]);
-    document.getElementById('book-date').value = now.toISOString().split('T')[0];
-    
-    renderEquipGrid(); 
-    renderRecords(); 
-    renderManage();
+    bookings = bk || [];
+    const n = new Date();
+    document.getElementById('current-date').innerText = forceFormat(n.toISOString().split('T')[0]);
+    document.getElementById('book-date').value = n.toISOString().split('T')[0];
+    renderEquipGrid(); renderRecords(); renderManage();
   }
 
-  function openLogin() { 
-    if(isLoggedIn) { logout(); }
-    else { document.getElementById('login-overlay').style.display = 'flex'; }
-  }
-  function closeLogin() { document.getElementById('login-overlay').style.display = 'none'; }
+  function handleAuthClick() { if(isAdmin) { isAdmin=false; location.reload(); } else document.getElementById('login-overlay').style.display='flex'; }
+  function closeOverlay(id) { document.getElementById(id).style.display='none'; }
   
   function processLogin() {
     const id = document.getElementById('admin-id').value;
     const ps = document.getElementById('admin-pass').value;
     if(id === 'admin' && ps === 'admin123') {
-        isLoggedIn = true;
-        document.getElementById('admin-sidebar-section').style.display = 'block';
-        document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Admin Logout';
-        closeLogin();
+        isAdmin = true; closeOverlay('login-overlay');
+        document.getElementById('admin-tools').style.display='block';
+        document.getElementById('auth-btn').innerHTML = '<i class="ti ti-logout"></i> Logout';
+        
+        // Show Welcome Screen Message
+        const wb = document.getElementById('welcome-box');
+        wb.style.display = 'block';
+        setTimeout(() => { wb.style.opacity = '0'; setTimeout(() => wb.style.display = 'none', 500); }, 2500);
+        
         renderRecords();
-        alert("Welcome Admin");
-    } else { alert("Invalid Credentials"); }
-  }
-
-  function logout() {
-    isLoggedIn = false;
-    document.getElementById('admin-sidebar-section').style.display = 'none';
-    document.getElementById('auth-btn').innerHTML = '<i class="ti ti-user-shield"></i> Admin Access';
-    switchTab('book');
-    renderRecords();
-  }
-
-  function isSlotBooked(eqId, date, slot, dur) {
-    const si = SLOTS.indexOf(slot);
-    const end = si + parseInt(dur);
-    return bookings.some(b => {
-      if (b.equip_id !== eqId || b.book_date !== date) return false;
-      const bi = SLOTS.indexOf(b.slot);
-      const be = bi + parseInt(b.duration);
-      return (si < be) && (end > bi);
-    });
+    } else alert("Access Denied");
   }
 
   function renderEquipGrid() {
@@ -255,100 +214,84 @@
     g.innerHTML = equipList.map(e => {
       const busy = bookings.some(b => b.equip_id === e.id && b.book_date === document.getElementById('book-date').value);
       return `<div class="equip-card ${selEquip === e.id ? 'selected' : ''}" onclick="selectEquip('${e.id}')">
-        <i class="ti ${e.icon || 'ti-flask'}"></i>
-        <div style="font-weight:bold">${e.name}</div>
-        <span class="equip-status ${busy ? 'status-busy' : 'status-avail'}">${busy ? 'In Use' : 'Available Today'}</span>
+        <i class="ti ${e.icon || 'ti-flask'}"></i><b>${e.name}</b><br>
+        <span class="equip-status ${busy ? 'status-busy' : 'status-avail'}">${busy ? 'Busy' : 'Available Today'}</span>
       </div>`;
     }).join('');
   }
 
-  function selectEquip(id) {
-    selEquip = id; selSlot = null; renderEquipGrid();
-    document.getElementById('booking-form').style.display = 'block';
-    renderSlots();
-  }
-
+  function selectEquip(id) { selEquip = id; selSlot = null; renderEquipGrid(); document.getElementById('booking-form').style.display='block'; renderSlots(); }
+  
   function renderSlots() {
-    if (!selEquip) return;
     const date = document.getElementById('book-date').value;
     const dur = parseInt(document.getElementById('duration').value);
-    const g = document.getElementById('slots-grid');
-    g.innerHTML = SLOTS.map(slot => {
-      const booked = isSlotBooked(selEquip, date, slot, dur);
-      return `<div class="slot ${booked ? 'booked' : ''} ${selSlot === slot ? 'selected-slot' : ''}" onclick="${booked ? '' : `selectSlot('${slot}')`}">${slot}</div>`;
+    document.getElementById('slots-grid').innerHTML = SLOTS.map(s => {
+      const si = SLOTS.indexOf(s);
+      const booked = bookings.some(b => {
+          if(b.equip_id !== selEquip || b.book_date !== date) return false;
+          const bi = SLOTS.indexOf(b.slot);
+          return (si < bi + parseInt(b.duration)) && (si + dur > bi);
+      });
+      return `<div class="slot ${booked ? 'booked' : ''} ${selSlot === s ? 'selected-slot' : ''}" onclick="${booked ? '' : `setS('${s}')`}">${s}</div>`;
     }).join('');
     document.getElementById('confirm-btn').disabled = !selSlot;
   }
 
-  function selectSlot(slot) { selSlot = slot; renderSlots(); }
+  function setS(s) { selSlot = s; renderSlots(); }
 
   async function confirmBooking() {
     const gear = equipList.find(e => e.id === selEquip);
     const b = {
       id: Date.now().toString(), equip_id: selEquip, equip_name: gear.name,
-      user_name: document.getElementById('user-name').value || "Guest", 
-      dept_name: document.getElementById('dept-name').value || "General", 
-      purpose: document.getElementById('purpose').value || "Research", 
-      book_date: document.getElementById('book-date').value,
+      user_name: document.getElementById('user-name').value, dept_name: document.getElementById('dept-name').value,
+      purpose: document.getElementById('purpose').value, book_date: document.getElementById('book-date').value,
       slot: selSlot, duration: document.getElementById('duration').value
     };
-    const { error } = await _supabase.from('bookings').insert([b]);
-    if(error) alert(error.message);
-    else { await load(); alert('Instrument Booked Globally!'); switchTab('records'); }
+    await _supabase.from('bookings').insert([b]);
+    await load(); switchTab('records');
   }
 
   function renderRecords() {
-    const tbody = document.getElementById('records-tbody');
-    const adminCells = document.querySelectorAll('.admin-only');
-    adminCells.forEach(c => c.style.display = isLoggedIn ? '' : 'none');
-
-    tbody.innerHTML = bookings.map(b => `
+    document.querySelectorAll('.adm-col').forEach(c => c.style.display = isAdmin ? '' : 'none');
+    document.getElementById('records-tbody').innerHTML = bookings.map(b => `
       <tr>
         <td><b>${b.equip_name}</b></td><td>${b.user_name}</td><td>${b.dept_name}</td>
-        <td style="color:var(--green-700); font-weight:bold">${getDisplayDate(b.book_date)}</td>
+        <td style="font-weight:bold; color:var(--green-700)">${forceFormat(b.book_date)}</td>
         <td>${b.slot}</td><td>${b.duration}h</td><td>${b.purpose}</td>
-        ${isLoggedIn ? `<td><button class="btn-danger" onclick="deleteBooking('${b.id}')"><i class="ti ti-trash"></i></button></td>` : ''}
+        ${isAdmin ? `<td><button class="btn-danger" onclick="triggerDelete('${b.id}')"><i class="ti ti-trash"></i></button></td>` : ''}
       </tr>
     `).reverse().join('');
   }
 
-  async function deleteBooking(id) {
-    if(!confirm("Delete this global record?")) return;
-    await _supabase.from('bookings').delete().eq('id', id);
-    await load();
+  function triggerDelete(id) {
+    document.getElementById('delete-overlay').style.display = 'flex';
+    document.getElementById('final-delete-btn').onclick = async () => {
+        await _supabase.from('bookings').delete().eq('id', id);
+        closeOverlay('delete-overlay');
+        await load();
+    };
   }
 
   function renderManage() {
-    const list = document.getElementById('manage-list');
-    list.innerHTML = equipList.map(e => `
-      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center">
-        <span><i class="ti ${e.icon}"></i> <b>${e.name}</b></span>
-        <button class="btn-danger" onclick="removeEquip('${e.id}')">Remove Gear</button>
+    document.getElementById('manage-list').innerHTML = equipList.map(e => `
+      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between">
+        <span><b>${e.name}</b></span><button onclick="remE('${e.id}')" style="background:none; border:none; color:var(--red-600); cursor:pointer"><i class="ti ti-trash"></i> Remove</button>
       </div>
     `).join('');
   }
 
   async function addEquipment() {
     const n = document.getElementById('new-name').value;
-    const i = document.getElementById('new-icon').value;
     if(!n) return;
-    const gear = { id: Date.now().toString(), name: n, icon: i };
-    await _supabase.from('equipment').insert([gear]);
-    document.getElementById('new-name').value = "";
+    await _supabase.from('equipment').insert([{id:Date.now().toString(), name:n, icon:'ti-flask'}]);
     await load();
   }
 
-  async function removeEquip(id) {
-    if(!confirm("Remove instrument from global grid?")) return;
-    await _supabase.from('equipment').delete().eq('id', id);
-    await load();
-  }
+  async function remE(id) { await _supabase.from('equipment').delete().eq('id',id); await load(); }
 
   function switchTab(t) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('tab-' + t).classList.add('active');
-    document.getElementById('nav-' + t).classList.add('active');
     if (t === 'records') renderRecords();
   }
 
