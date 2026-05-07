@@ -164,6 +164,36 @@
     </div>
   </main>
 </div>
+  <div id="edit-modal-overlay" class="overlay">
+  <div class="modal-box" style="max-width: 450px;">
+    <h2 style="margin-bottom: 20px;">Edit Instrument</h2>
+    <input type="hidden" id="edit-id" />
+    
+    <div style="text-align: left; margin-bottom: 10px;">
+      <label style="font-size: 12px; font-weight: bold;">Instrument Name</label>
+      <input type="text" id="edit-name" placeholder="Name" />
+    </div>
+    
+    <div style="text-align: left; margin-bottom: 10px;">
+      <label style="font-size: 12px; font-weight: bold;">Details / Specification</label>
+      <input type="text" id="edit-desc" placeholder="Model, serial, or room number" />
+    </div>
+    
+    <div style="text-align: left; margin-bottom: 20px;">
+      <label style="font-size: 12px; font-weight: bold;">Operational Status</label>
+      <select id="edit-status">
+        <option value="Working">✅ Working</option>
+        <option value="Maintenance">🛠 Under Maintenance</option>
+        <option value="Broken">❌ Not Working</option>
+      </select>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeOverlay('edit-modal-overlay')" style="flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer;">Cancel</button>
+      <button class="btn-primary" onclick="saveInstrumentUpdate()" style="flex: 1; margin-top: 0;">Update Global Gear</button>
+    </div>
+  </div>
+</div>
 
 <script>
   const SUPABASE_URL = 'https://bnyoriririjcavptmall.supabase.co'; 
@@ -228,13 +258,21 @@
   function renderEquipGrid() {
     const g = document.getElementById('equip-grid');
     g.innerHTML = equipList.map(e => {
+      const isBroken = e.status === 'Broken' || e.status === 'Maintenance';
       const busy = bookings.some(b => b.equip_id === e.id && b.book_date === document.getElementById('book-date').value);
-      return `<div class="equip-card ${selEquip === e.id ? 'selected' : ''}" onclick="selectEquip('${e.id}')">
-        <i class="ti ${e.icon || 'ti-flask'}"></i><b>${e.name}</b><br>
-        <span class="equip-status ${busy ? 'status-busy' : 'status-avail'}">${busy ? 'Busy' : 'Available Today'}</span>
+      
+      return `<div class="equip-card ${selEquip === e.id ? 'selected' : ''} ${isBroken ? 'broken-card' : ''}" 
+                   onclick="${isBroken ? `alert('Instrument is currently ${e.status}')` : `selectEquip('${e.id}')`}"
+                   style="${isBroken ? 'opacity:0.6; cursor:not-allowed;' : ''}">
+        <i class="ti ${e.icon || 'ti-flask'}"></i>
+        <div style="font-weight:bold">${e.name}</div>
+        <div style="font-size:10px; color:#888;">${e.description || ''}</div>
+        <span class="equip-status ${isBroken ? 'status-busy' : (busy ? 'status-busy' : 'status-avail')}">
+            ${isBroken ? e.status : (busy ? 'Busy' : 'Available Today')}
+        </span>
       </div>`;
     }).join('');
-  }
+}
 
   function selectEquip(id) { selEquip = id; selSlot = null; renderEquipGrid(); document.getElementById('booking-form').style.display='block'; renderSlots(); }
   
@@ -288,21 +326,71 @@
     };
   }
 
-  function renderManage() {
+  // --- ADMIN MANAGEMENT LOGIC ---
+
+function renderManage() {
     const list = document.getElementById('manage-list');
     list.innerHTML = equipList.map(e => `
-      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:white">
-        <span><i class="ti ${e.icon || 'ti-flask'}"></i> <b>${e.name}</b></span>
-        <div style="display:flex; gap:10px">
-            <button onclick="editInstrument('${e.id}', '${e.name}')" style="background:var(--green-50); color:var(--green-600); border:none; padding:5px 10px; border-radius:4px; cursor:pointer">
+      <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:white;">
+        <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <i class="ti ${e.icon || 'ti-flask'}" style="color:var(--green-600)"></i>
+                <b>${e.name}</b>
+            </div>
+            <div style="font-size:11px; color:#777; margin-top:4px;">
+                ${e.description || 'No details'} • 
+                <span style="color:${e.status === 'Working' ? 'green' : 'red'}">${e.status || 'Working'}</span>
+            </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <button onclick="openEditModal('${e.id}', '${e.name}', '${e.description || ''}', '${e.status || 'Working'}')" 
+                    style="padding:6px 12px; border-radius:4px; border:1px solid var(--green-600); color:var(--green-600); background:none; cursor:pointer;">
                 <i class="ti ti-edit"></i> Edit
             </button>
-            <button onclick="deleteInstrument('${e.id}')" style="background:var(--red-50); color:var(--red-600); border:none; padding:5px 10px; border-radius:4px; cursor:pointer">
-                <i class="ti ti-trash"></i> Delete
+            <button class="btn-danger" onclick="triggerDelete('${e.id}', 'equipment')" style="padding:6px 12px;">
+                <i class="ti ti-trash"></i>
             </button>
         </div>
       </div>
     `).join('');
+}
+
+// Open the custom window and fill it with current data
+function openEditModal(id, name, desc, status) {
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-name').value = name;
+    document.getElementById('edit-desc').value = desc;
+    document.getElementById('edit-status').value = status;
+    document.getElementById('edit-modal-overlay').style.display = 'flex';
+}
+
+// Save the data to Supabase
+async function saveInstrumentUpdate() {
+    const id = document.getElementById('edit-id').value;
+    const name = document.getElementById('edit-name').value;
+    const desc = document.getElementById('edit-desc').value;
+    const status = document.getElementById('edit-status').value;
+
+    const { error } = await _supabase
+        .from('equipment')
+        .update({ 
+            name: name, 
+            description: desc, 
+            status: status 
+        })
+        .eq('id', id);
+
+    if (error) {
+        alert("Error updating: " + error.message);
+    } else {
+        closeOverlay('edit-modal-overlay');
+        await load(); // Refresh all data
+        // Small welcome-style notification
+        const wb = document.getElementById('welcome-box');
+        wb.innerText = "Instrument Updated!";
+        wb.style.display = 'block';
+        setTimeout(() => { wb.style.display = 'none'; }, 2000);
+    }
 }
 
 // Function to Edit Instrument Name
