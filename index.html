@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Added PDF Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  
   <title>AB Lab | Instrument Booking</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
   <style>
@@ -158,6 +162,16 @@
     </div>
 
     <div id="tab-manage" class="section">
+      <!-- Admin Export Functionality Added Below -->
+      <div class="card" id="export-section">
+        <h3>Export Booking History</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px">
+            <div><label>From Date</label><input type="date" id="export-from" /></div>
+            <div><label>To Date</label><input type="date" id="export-to" /></div>
+        </div>
+        <button class="btn-primary" onclick="exportToPDF()" style="background: #2c3e50;"><i class="ti ti-file-download"></i> Download PDF Report</button>
+      </div>
+
       <div class="card">
         <h3>Add New Instrument</h3>
         <input type="text" id="new-name" placeholder="Instrument Name" />
@@ -455,6 +469,63 @@ window.onkeypress = resetInactivityTimer;
     document.getElementById('tab-' + t).classList.add('active');
     document.getElementById('nav-' + t).classList.add('active');
     if (t === 'records') renderRecords();
+  }
+
+  // --- NEW PDF EXPORT FUNCTION ---
+  function exportToPDF() {
+    const fromDate = document.getElementById('export-from').value;
+    const toDate = document.getElementById('export-to').value;
+
+    if (!fromDate || !toDate) {
+      alert("Please select both From and To dates.");
+      return;
+    }
+
+    // Filter bookings based on date range
+    const filtered = bookings.filter(b => {
+      return b.book_date >= fromDate && b.book_date <= toDate;
+    }).sort((a, b) => new Date(a.book_date) - new Date(b.book_date));
+
+    if (filtered.length === 0) {
+      alert("No records found for the selected date range.");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Add Title
+    doc.setFontSize(18);
+    doc.setTextColor(15, 110, 86); // var(--green-600)
+    doc.text("AB Lab Booking Report", 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Range: ${formatRecord(fromDate)} to ${formatRecord(toDate)}`, 14, 28);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 33);
+
+    // Prepare table data
+    const tableRows = filtered.map(b => [
+      b.equip_name,
+      b.user_name,
+      b.dept_name,
+      formatRecord(b.book_date),
+      b.slot,
+      b.duration + 'h',
+      b.purpose
+    ]);
+
+    // Generate Table
+    doc.autoTable({
+      startY: 40,
+      head: [['Instrument', 'User', 'Lab/Dept', 'Date', 'Time', 'Hrs', 'Purpose']],
+      body: tableRows,
+      headStyles: { fillColor: [29, 158, 117] }, // var(--green-700)
+      theme: 'striped',
+      styles: { fontSize: 8 }
+    });
+
+    doc.save(`Lab_Report_${fromDate}_to_${toDate}.pdf`);
   }
 
   load();
